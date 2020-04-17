@@ -1,0 +1,19 @@
+list    list item
+链表    节点
+
+单链表：节点本身必须包含一个节点指针，用于指向后一个节点，还可以携带一些私有信息。
+struct node
+{
+    struct node *next;          //下一个节点
+    char data;                  //以下都是私有信息
+    unsigned char array[];
+    long *prt;
+    struct userstruct data2;
+}
+但是这样使用不方便，通常是struct node{    struct node *next;  }作为节点，内嵌到不同数据结构中。
+我们会认为规定一个根节点，然后插入删除操作。
+
+双向链表：节点中有两个节点指针，分别指向前后两个节点。
+
+链表通过节点把离散的数据连接起来
+数组是一段连续的内存
