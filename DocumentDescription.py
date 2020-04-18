@@ -5,7 +5,7 @@ dic = {
     r'.\User\main.c':'主程序入口',
     r'.\freertos\list.c':'节点链表操作',
     r'.\freertos\include\list.h':'列表操作声明文件',
-    r'.\freertos\include\portmacro.h':'不同平台下变量类型定义',
+    r'.\freertos\include\portmacro.h':'不同平台下变量类型定义，将标准C类型重定义一个名字',
     r'.\freertos\include\FreeRTOS.h':'平台相关数据类型包含文件',
     r'.\freertos\include\FreeRTOSConfig.h':'系统时钟位数定义',
     r'.\freertos\include\portable.h':'包含portmacro.h'

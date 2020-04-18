@@ -1,5 +1,6 @@
+#include "FreeRTOS.h"
 #include "list.h"
-#include "stdlib.h"
+#include <stdlib.h>
 
 /* 链表节点初始化 */
 void vListInitialiseItem(ListItem_t *const pxItem)
@@ -9,7 +10,7 @@ void vListInitialiseItem(ListItem_t *const pxItem)
 }
 
 /* 链表根节点初始化 */
-void vListInitalise(List_t *const pxList)
+void vListInitialise(List_t *const pxList)
 {
     /* 将链表索引指针指向最后一个节点 */
     pxList->pxIndex = (ListItem_t *)&(pxList->xListEnd);
@@ -76,7 +77,7 @@ UBaseType_t uxListRemove(ListItem_t *const pxItemToRemove)
     pxItemToRemove->pxNext->pxPrevious = pxItemToRemove->pxPrevious;
     pxItemToRemove->pxPrevious->pxNext = pxItemToRemove->pxNext;
     /* 调整链表的节点索引指针 */
-    if(pxList->pxIndex == pxItemToRemove)
+    if (pxList->pxIndex == pxItemToRemove)
     {
         pxList->pxIndex = pxItemToRemove->pxPrevious;
     }

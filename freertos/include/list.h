@@ -69,7 +69,7 @@ typedef struct xLIST
     List_t * const pxConstList = (pxList);                                          \
     /* 节点索引指向链表的下一个节点 */                                                \
     (pxConstList)->pxIndex = (pxConstList)->pxIndex->pxNext;                        \
-    /* 这里应该是因为ListEnd没有Owner */                                             \
+    /* 这里应该是因为ListEnd是虚的，没有Owner */                                      \
     if((void *)(pxConstList)->pxIndex == (void *)&((pxConstList)->xListEnd))        \
     {                                                                               \
         (pxConstList)->pxIndex = (pxConstList)->pxIndex->pxNext;                    \
@@ -85,7 +85,7 @@ typedef struct xLIST
 ************************************************************************
 */
 void vListInitialiseItem(ListItem_t *const pxItem);
-void vListInitalise(List_t *const pxList);
+void vListInitialise(List_t *const pxList);
 void vListInsertEnd(List_t *const pxList, ListItem_t *const pxNewListItem);
 void vListInsert(List_t *const pxList, ListItem_t *const pxNewListItem);
 UBaseType_t uxListRemove(ListItem_t *const pxItemToRemove);

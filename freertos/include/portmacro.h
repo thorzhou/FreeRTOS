@@ -24,4 +24,21 @@ typedef unsigned long UBaseType_t;
     #define portMAX_DELAY (TickType_t) 0xffffffffUL
 #endif
 
+/* 
+ * 中断控制状态寄存器：0xE000ED04
+ * Bit 28 PENDSVSET: PendSV 悬起位
+ */
+#define portNVIC_INT_CTRL_REG   (*((volatile uint32_t *) 0xE000ED04))
+#define portNVIC_PENDSVSET_BIT  (1UL << 28UL )
+#define portSY_FULL_READ_WRITE  (15)
+
+/* YIELD的实现就是将PendSV的悬起位置1，当没有其他中断运行的时候响应PendSV中断，去执行PendSV中断服务函数，在中断里实现任务切换 */
+#define portYIELD()                                 \
+{                                                   \
+    /* 触发PendSV，产生上下文切换 */                 \
+    portNVIC_INT_CTRL_REG = portNVIC_PENDSVSET_BIT; \
+    __dsb(portSY_FULL_READ_WRITE);                  \
+    __isb(portSY_FULL_READ_WRITE);                  \
+}
+
 #endif /*PORTMACRO_H*/
