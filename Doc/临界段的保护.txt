@@ -1,0 +1,19 @@
+临界段的概念类似原子操作，不可被打断的代码段。
+freertos对临界段的保护由对中断的开关控制实现。
+cortex-M命令，CPS，可以实现快速开关中断。
+CPSID   I   interrupt request disable IRQ   PRIMASK     -- 1bit, 不屏蔽NMI和硬FAULT
+CPSIE   I   interrupt request enable 
+CPSID   F   fast interrupt request FIQ      FAULTMASK   -- 1bit, 不屏蔽NMI
+CPSID   F
+                                            BASEPRI     -- 9bit, 屏蔽优先级号>=该值的中断
+
+临界段的概念类似原子操作，不可被打断的代码段。
+freertos对临界段的保护由对中断的开关控制实现。
+cortex-M命令，CPS，可以实现快速开关中断。
+CPSID   I   interrupt request disable IRQ   PRIMASK     -- 1bit, 不屏蔽NMI和硬FAULT
+CPSIE   I   interrupt request enable 
+CPSID   F   fast interrupt request FIQ      FAULTMASK   -- 1bit, 不屏蔽NMI
+CPSID   F
+                                            BASEPRI     -- 9bit, 屏蔽优先级号>=该值的中断
+
+带不带返回值的关中断函数的区别：返回值是原先的BASEPRI的值，在更新完BASEPRI的值以后，返回值作为形参传入开中断函数。

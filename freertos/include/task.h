@@ -1,6 +1,7 @@
 #ifndef INC_TASK_H
 #define INC_TASK_H
 
+#include "FreeRTOS.h"
 #include "list.h"
 
 /* 任务句柄 */
@@ -24,5 +25,7 @@ void vTaskSwitchContext(void);
 
 StackType_t *pxPortInitialiseStack( StackType_t *pxTopOfStack, TaskFunction_t pxCode, void *pvParameters );
 BaseType_t xPortStartScheduler( void );
+
+/* 进入临界段 */
 
 #endif /*INC_TASK_H*/
