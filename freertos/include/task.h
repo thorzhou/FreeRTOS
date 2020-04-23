@@ -27,5 +27,11 @@ StackType_t *pxPortInitialiseStack( StackType_t *pxTopOfStack, TaskFunction_t px
 BaseType_t xPortStartScheduler( void );
 
 /* 进入临界段 */
+/* 不带中断保护，不能嵌套 */
+#define taskENTER_CRITICAL()    portENTER_CRITICAL()
+#define taskEXIT_CRITICAL()     portEXIT_CRITICAL()
+/* 带中断保护，能嵌套 */
+#define taskENTER_CRITICAL_FROM_ISR()   portSET_INTERRUPT_MASK_FROM_ISR()
+#define taskEXIT_CRITICAL_FROM_ISR(x)    portCLEAR_INTERRUPT_MASK_FROM_ISR(x)
 
 #endif /*INC_TASK_H*/

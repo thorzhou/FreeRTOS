@@ -30,6 +30,11 @@ static void prvInitialiseNewTask(TaskFunction_t pxTaskCode, //entry
                                  void *const pvParameters,
                                  TaskHandle_t *const pxCreatedTask,
                                  TCB_t *pxNewTCB);
+
+extern TCB_t IdleTaskTCB;
+void vApplicationGetIdleTaskMemory( TCB_t **ppxIdleTaskTCBBuffer,
+                                    StackType_t **ppxIdleTaskStackBuffer,
+                                    uint32_t *pulIdleTaskStackSize );
 /*
 *************************************************************************
 *                             Global variable
