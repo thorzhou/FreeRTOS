@@ -41,33 +41,33 @@ typedef unsigned long UBaseType_t;
     __isb(portSY_FULL_READ_WRITE);                  \
 }
 
-/* 不带返回值的关中断函数，不能嵌套，不能在中断里面使用 */
-#define portDISABLE_INTERRUPTS()    vPortRaiseBASEPRI()
-void vPortRaiseBASEPRI(void)
-{
-    uint32_t ulNewBASEPRI = configMAX_SYSCALL_INTERRUPT_PRIORITY;
-    __asm
-    {
-        msr basepri, ulNewBASEPRI
-        dsb
-        isb
-    }
-}
+// /* 不带返回值的关中断函数，不能嵌套，不能在中断里面使用 */
+// #define portDISABLE_INTERRUPTS()    vPortRaiseBASEPRI()
+// void vPortRaiseBASEPRI(void)
+// {
+//     uint32_t ulNewBASEPRI = configMAX_SYSCALL_INTERRUPT_PRIORITY;
+//     __asm
+//     {
+//         msr basepri, ulNewBASEPRI
+//         dsb
+//         isb
+//     }
+// }
 
-/* 带返回值的关中断函数，可以嵌套，可以在中断里面使用 */
-#define portSET_INTERRUPT_MASK_FROM_ISR() ulPortRaiseBASEPRI()
-uint32_t ulPortRaiseBASEPRI(void)
-{
-    uint32_t ulReturn, ulNewBASEPRI = configMAX_SYSCALL_INTERRUPT_PRIORITY;
-    __asm
-    {
-        mrs ulReturn, basepri
-        msr basepri, ulNewBASEPRI
-        dsb
-        isb
-    }
-    return ulReturn;
-}
+// /* 带返回值的关中断函数，可以嵌套，可以在中断里面使用 */
+// #define portSET_INTERRUPT_MASK_FROM_ISR() ulPortRaiseBASEPRI()
+// uint32_t ulPortRaiseBASEPRI(void)
+// {
+//     uint32_t ulReturn, ulNewBASEPRI = configMAX_SYSCALL_INTERRUPT_PRIORITY;
+//     __asm
+//     {
+//         mrs ulReturn, basepri
+//         msr basepri, ulNewBASEPRI
+//         dsb
+//         isb
+//     }
+//     return ulReturn;
+// }
 
 /* 开中断 */
 extern vPortEnterCritical(void);
@@ -134,11 +134,11 @@ static portFORCE_INLINE uint32_t ulPortRaiseBASEPRI(void)
     return ulReturn;
 }
 
-static portFORCE_INLINE void vPortSetBASEPRI(uint32_t ulBASEPRI)
+static portFORCE_INLINE void vPortClearBASEPRIFromISR( void )
 {
     __asm
     {
-        msr basepri, ulBASEPRI
+        msr basepri, #0
     }
 }
 #endif /*PORTMACRO_H*/

@@ -140,11 +140,32 @@ void prvInitialiseTaskLists(void)
 
 extern TCB_t Task1TCB;
 extern TCB_t Task2TCB;
+extern TickType_t xTickCount;
 /* 启动调度器 */
 void vTaskStartScheduler(void)
 {
+    /*=================== 创建空闲任务 =====================*/
+    TCB_t *pxIdleTaskTCBBuffer = NULL;  //指向空闲任务控制块
+    StackType_t *pxIdleTaskStackBuffer = NULL;  //指向空闲任务栈起始地址
+    uint32_t ulIdleTaskStackSize;
+    /* 获取空闲任务的内存：任务栈和TCB */
+    vApplicationGetIdleTaskMemory(  &pxIdleTaskTCBBuffer,
+                                    &pxIdleTaskStackBuffer,
+                                    &ulIdleTaskStackSize);
+    /* 创建空闲任务 */
+    xIdleTaskHandle = xTaskCreateStatic( (TaskFunction_t)prvIdleTask,
+                                         (char*)"IDLE",
+                                         (uint32_t)ulIdleTaskStackSize,
+                                         (void *)NULL,  //任务形参
+                                         (StackType_t *)pxIdleTaskStackBuffer,
+                                         (TCB_t *)pxIdleTaskTCBBuffer );
+    vListInsertEnd(&(pxReadyTasksLists[0]),&(((TCB_t *)pxIdleTaskTCBBuffer)->xStateListItem));
+    /*=================== End of 创建空闲任务 =============*/
+
     /* 手动指定第一个运行的任务，因为现在还不支持优先级 */
     pxCurrentTCB = &Task1TCB;
+
+    xTickCount = 0;
     /* 启动调度器 */
     if (xPortStartScheduler() != pdFALSE)
     {
@@ -153,6 +174,7 @@ void vTaskStartScheduler(void)
 }
 
 /* 选择优先级最高的任务 */
+#if 0
 void vTaskSwitchContext(void)
 {
     /* 两个任务轮流切换 */
@@ -165,3 +187,92 @@ void vTaskSwitchContext(void)
         pxCurrentTCB = &Task1TCB;
     }
 }
+#else
+void vTaskSwitchContext(void)
+{
+    /* 如果当前任务式空闲任务，那么就去尝试执行任务1或者任务2，看看他们的
+    延时时间是否结束，如果任务的延时时间均没有到期，那就返回继续执行空闲任务 */
+    if(pxCurrentTCB == &IdleTaskTCB)
+    {
+        if(Task1TCB.xTicksToDelay == 0)
+        {
+            pxCurrentTCB = &Task1TCB;
+        }
+        else if(Task2TCB.xTicksToDelay == 0)
+        {
+            pxCurrentTCB = &Task2TCB;
+        }
+        else
+        {
+            return;
+        }
+    }
+    else //当前不是执行空闲任务
+    {
+        /* 如果当前任务是任务1或者任务2的话，检查下另外一个任务，如果
+        另外的任务不在延时中，就切换到该任务，否则，判断下当前任务是否
+        应该进入延时状态，如果是，就切换到空闲任务，否则就不进行切换 */
+        if(pxCurrentTCB == &Task1TCB)
+        {
+            if(Task2TCB.xTicksToDelay == 0)
+            {
+                pxCurrentTCB = &Task2TCB;
+            }
+            else if(pxCurrentTCB->xTicksToDelay != 0)
+            {
+                pxCurrentTCB = &IdleTaskTCB;
+            }
+            else
+            {
+                return;
+            }
+        }
+        else if(pxCurrentTCB == &Task2TCB)
+        {
+            if(Task1TCB.xTicksToDelay == 0)
+            {
+                pxCurrentTCB = &Task1TCB;
+            }
+            else if(pxCurrentTCB->xTicksToDelay != 0)
+            {
+                pxCurrentTCB = &IdleTaskTCB;
+            }
+            else
+            {
+                return;
+            }
+        }
+    }
+}
+#endif
+
+/*! \fn			void function(UNSIGNED32 u32Param1)
+ *  \brief 		Description of this function
+ *  \param 		param1: Description of parameter
+ *  \param 		param2: Description of parameter
+ *  \exception (None non-reentrant code)
+ *  \return 	TRUE: success FALSE: unsuccess
+ */
+void xTaskIncrementTick(void)
+{
+    TCB_t *pxTCB = NULL;
+    BaseType_t i = 0;
+    
+    /* 更新系统时基计数器xTickCount,定义再port.c中的全局变量 */
+    const TickType_t xConstTickCount = xTickCount + 1;
+    xTickCount = xConstTickCount;
+
+    /* 扫描就绪列表中所有任务的xTicksToDelay,如果不为0，则减1 */
+    for (i = 0; i < configMAX_PRIORITIES; i++)
+    {
+        pxTCB = (TCB_t *)listGET_OWNER_OF_HEAD_ENTRY((&pxReadyTasksLists[i]));
+        if(pxTCB->xTicksToDelay > 0)
+        {
+            pxTCB->xTicksToDelay--;
+        }
+    }
+    
+    /* 任务切换 */
+    portYIELD();
+}
+

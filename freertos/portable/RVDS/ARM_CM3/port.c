@@ -36,6 +36,22 @@
 #define portNVIC_PENDSV_PRI (((uint32_t)configKERNEL_INTERRUPT_PRIORITY) << 16UL)
 #define portNVIC_SYSTICK_PRI (((uint32_t)configKERNEL_INTERRUPT_PRIORITY) << 24UL)
 
+/* SysTick控制寄存器 */
+#define portNVIC_SYSTICK_CTRL_REG   (*((volatile uint32_t *) 0xe000e010))
+/* SysTick重装载寄存器 */
+#define portNVIC_SYSTICK_LOAD_REG   (*((volatile uint32_t *) 0xe000e014))
+/* SysTick时钟源选择 */
+#ifndef configSYSTICK_CLOCK_HZ
+    #define configSYSTICK_CLOCK_HZ configCPU_CLOCK_HZ
+    /* 确保SysTick时钟与内核时钟一致 */
+    #define portNVIC_SYSTICK_CLK_BIT (1UL<<2UL)
+#else
+    #define portNVIC_SYSTICK_CLK_BIT (0)
+#endif
+
+#define portNVIC_SYSTICK_INT_BIT    (1UL<<1UL)
+#define portNVIC_SYSTICK_ENABLE_BIT (1UL<<0UL)
+
 //-------------------- private data -----------------------------------------
 static uint32_t uxCriticalNesting = 0xaaaaaaaa;
 //-------------------- private functions declare ----------------------------
@@ -43,7 +59,7 @@ void prvStartFirstTask(void);
 void vPortSVCHandler(void);
 void xPortPendSVHandler(void);
 //-------------------- public data ------------------------------------------
-
+TickType_t xTickCount = 0;
 //-------------------- public functions -------------------------------------
 /*! \fn			void function(UNSIGNED32 u32Param1)
  *  \brief 		Description of this function
@@ -107,6 +123,10 @@ BaseType_t xPortStartScheduler(void)
     /* 表示临界段嵌套计数器，在调度器启动时会被重新初始化为0.
        vTaskStartScheduler()->xPortStartScheduler()->uxCritialNesting=0; */
     uxCritialNesting = 0;
+
+    /* 初始化SysTick */
+    vPortSetupTimerInterrupt();
+    
     /* 启动第一个任务，不在返回 */
     prvStartFirstTask();
 
@@ -309,5 +329,36 @@ void vPortExitCritical(void)
     }
 }
 
+/*! \fn			void xPortSysTickHandler(void)
+ *  \brief 		systick interrupt service routine
+ *  \exception (None non-reentrant code)
+ *  \return 	TRUE: success FALSE: unsuccess
+ */
+void xPortSysTickHandler(void)
+{
+    /* 关中断 */
+    vPortRaiseBASEPRI();
+    /* 更新系统时基 */
+    xTaskIncrementTick();
+    /* 开中断 */
+    vPortClearBASEPRIFromISR();
+}
+
+/*! \fn			void function(UNSIGNED32 u32Param1)
+ *  \brief 		Description of this function
+ *  \param 		param1: Description of parameter
+ *  \param 		param2: Description of parameter
+ *  \exception (None non-reentrant code)
+ *  \return 	TRUE: success FALSE: unsuccess
+ */
+void vPortSetupTimerInterrupt(void)
+{
+    /* 设置重装载寄存器的值 */
+    portNVIC_SYSTICK_LOAD_REG = (configSYSTICK_CLOCK_HZ / configTICK_RATE_HZ) - 1UL;
+    /* 设置系统定时器的时钟等于内核时钟，使能SysTick定时器中断，使能SysTick定时器 */
+    portNVIC_SYSTICK_CTRL_REG = (   portNVIC_SYSTICK_CLK_BIT |
+                                    portNVIC_SYSTICK_INT_BIT |
+                                    portNVIC_SYSTICK_ENABLE_BIT );
+}
 //-----------------------End of file------------------------------------------
 /** @} */ /* End of group */
