@@ -1,0 +1,7 @@
+新建工程
+    Target
+    - 配置魔术棒，要使用printf需要选择 Use MicroLib
+    - 要使用浮点运算FPU，要开微库并且选择Use Single Precision
+    C/C++
+    - 在preprocesser symbols / define 中预定义USE_STDPERIPH_DRIVER,STM32F429_439xx,
+
