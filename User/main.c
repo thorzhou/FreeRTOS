@@ -58,14 +58,21 @@ void Delay(__IO uint32_t nCount) //简单的延时函数
  */
 int main(void)
 {
+	uint32_t i;
 	/* LED 端口初始化 */
 	LED_GPIO_Config();
 
 #if (USE_USART1 == 1)
 	DEBUG_USART_Config();
+	DEBUG_USART_DMA_Config();
 	// Usart_SendString(DEBUG_USART, "This is a usart test.\n");
 	printf("This is a test of printf.\n");
 	printf("Welcome to far west.\n");
+	for (i = 0; i < SENDBUFF_SIZE; i++)
+	{
+		SendBuff[i] = 'a';
+	}
+	USART_DMACmd(DEBUG_USART,USART_DMAReq_Tx,ENABLE);
 	// while (1)
 	// {
 	// 	char ch = getchar();

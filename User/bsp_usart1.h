@@ -47,15 +47,22 @@
 
 #define DEBUG_USART_IRQHandler      USART1_IRQHandler
 #define DEBUG_USART_IRQ             USART1_IRQn
+
+#define DEBUG_USART_DR_BASE               (USART1_BASE+0x04)		
+#define SENDBUFF_SIZE                     5000				
+#define DEBUG_USART_DMA_CLK               RCC_AHB1Periph_DMA2	
+#define DEBUG_USART_DMA_CHANNEL           DMA_Channel_4
+#define DEBUG_USART_DMA_STREAM            DMA2_Stream7
                                   
 //-------------------- public data ------------------------------------------
+extern uint8_t SendBuff[SENDBUFF_SIZE];
 
 
 //-------------------- public functions -------------------------------------
 void DEBUG_USART_Config(void);
 void Usart_SendByte(USART_TypeDef *pUSARTx, uint8_t ch);
 void Usart_SendString(USART_TypeDef *pUSARTx, char* str);
-
+void DEBUG_USART_DMA_Config(void);
 //-------------------- inline functions -------------------------------------
 
 #endif /* BSP_USART1_H_ */
