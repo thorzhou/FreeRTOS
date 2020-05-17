@@ -55,3 +55,6 @@
         - 配置中断控制器并使能USART接收中断
         - 使能USART
         - 在USART接收中断服务函数实现数据接收和发送
+
+DMA(Direct Memory Access)
+    

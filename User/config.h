@@ -24,7 +24,7 @@
 #define CONFIG_H_
 //-------------------- include files ----------------------------------------
 #include "bsp_led.h"
-#include "bsp_usart.h"
+#include "bsp_usart1.h"
 
 //-------------------- public definitions -----------------------------------
 #define USE_USART1  1

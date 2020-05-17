@@ -20,8 +20,8 @@
 //                             Copyright(c) company name, 2020
 //------------------------------------------------------------------------------
 
-#ifndef BSP_USART_H_
-#define BSP_USART_H_
+#ifndef BSP_USART1_H_
+#define BSP_USART1_H_
 //-------------------- include files ----------------------------------------
 #include "stm32f4xx.h"
 #include <stdio.h>
@@ -58,6 +58,6 @@ void Usart_SendString(USART_TypeDef *pUSARTx, char* str);
 
 //-------------------- inline functions -------------------------------------
 
-#endif /* BSP_USART_H_ */
+#endif /* BSP_USART1_H_ */
 //-----------------------End of file------------------------------------------
 /** @}*/
