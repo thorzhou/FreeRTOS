@@ -8,15 +8,15 @@
 //------------------------------------------------------------------------------
 //  $Header$
 //
-//  Company    : 
+//  Company    :
 //
-//  Project    : 
+//  Project    :
 //
-//  Filename   : 
+//  Filename   :
 //
 //  Programmer : ZYQ
-//                             
-//  Description   : 
+//
+//  Description   :
 //
 //              ***  Confidential property of Company name ***
 //                             Copyright(c) Company name, 2020
@@ -26,13 +26,12 @@
 
 //-------------------- include files ----------------------------------------
 #include "stm32f4xx.h"
-#include "bsp_led.h"
+#include "config.h"
 //-------------------- local definitions ------------------------------------
 
 //-------------------- private data -----------------------------------------
 
 //-------------------- private functions declare ----------------------------
-void Delay(__IO u32 nCount); 
 
 //-------------------- public data ------------------------------------------
 
@@ -44,18 +43,11 @@ void Delay(__IO u32 nCount);
  *  \exception (None non-reentrant code)
  *  \return 	TRUE: success FALSE: unsuccess
  */
-void Delay(__IO uint32_t nCount)	 //简单的延时函数
+void Delay(__IO uint32_t nCount) //简单的延时函数
 {
-	for(; nCount != 0; nCount--);
+	for (; nCount != 0; nCount--)
+		;
 }
-//-------------------- private functions ------------------------------------
-/*! \fn			void function(UNSIGNED32 u32Param1)
- *  \brief 		Description of this function
- *  \param 		param1: Description of parameter
- *  \param 		param2: Description of parameter
- *  \exception (None non-reentrant code)
- *  \return 	TRUE: success FALSE: unsuccess
- */
 
 //-------------------- private functions ------------------------------------
 /*! \fn			int main(void)
@@ -69,48 +61,62 @@ int main(void)
 	/* LED 端口初始化 */
 	LED_GPIO_Config();
 
+#if (USE_USART1 == 1)
+	DEBUG_USART_Config();
+	// Usart_SendString(DEBUG_USART, "This is a usart test.\n");
+	printf("This is a test of printf.\n");
+	printf("Welcome to far west.\n");
+#endif
+
 	/* 控制LED灯 */
 	while (1)
 	{
-		LED1( ON );			 // 亮 
-		Delay(0xFFFFFF);
-		LED1( OFF );		  // 灭
+		LED1(ON); // 亮
+		Delay(0xFFFFF);
+		LED1(OFF); // 灭
 
-		LED2( ON );			// 亮 
-		Delay(0xFFFFFF);
-		LED2( OFF );		  // 灭
+		LED2(ON); // 亮
+		Delay(0xFFFFF);
+		LED2(OFF); // 灭
 
-		LED3( ON );			 // 亮 
-		Delay(0xFFFFFF);
-		LED3( OFF );		  // 灭	
+		LED3(ON); // 亮
+		Delay(0xFFFFF);
+		LED3(OFF); // 灭
 
 		/*轮流显示 红绿蓝黄紫青白 颜色*/
 		LED_RED;
-		Delay(0xFFFFFF);
-		
+		Delay(0xFFFFF);
+
 		LED_GREEN;
-		Delay(0xFFFFFF);
-		
+		Delay(0xFFFFF);
+
 		LED_BLUE;
-		Delay(0xFFFFFF);
-		
+		Delay(0xFFFFF);
+
 		LED_YELLOW;
-		Delay(0xFFFFFF);
-		
+		Delay(0xFFFFF);
+
 		LED_PURPLE;
-		Delay(0xFFFFFF);
-				
+		Delay(0xFFFFF);
+
 		LED_CYAN;
-		Delay(0xFFFFFF);
-		
+		Delay(0xFFFFF);
+
 		LED_WHITE;
-		Delay(0xFFFFFF);
-		
+		Delay(0xFFFFF);
+
 		LED_RGBOFF;
-		Delay(0xFFFFFF);
+		Delay(0xFFFFF);
 	}
 
-    return 0;
+	// return 0;
 }
+/*! \fn			void function(UNSIGNED32 u32Param1)
+ *  \brief 		Description of this function
+ *  \param 		param1: Description of parameter
+ *  \param 		param2: Description of parameter
+ *  \exception (None non-reentrant code)
+ *  \return 	TRUE: success FALSE: unsuccess
+ */
 //-----------------------End of file------------------------------------------
 /** @} */ /* End of group */

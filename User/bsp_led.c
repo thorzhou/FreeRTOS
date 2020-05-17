@@ -24,10 +24,8 @@
   */
 void LED_GPIO_Config(void)
 {		
-		/*����һ��GPIO_InitTypeDef���͵Ľṹ��*/
 		GPIO_InitTypeDef GPIO_InitStructure;
 
-		/*����LED��ص�GPIO����ʱ��*/
 		RCC_AHB1PeriphClockCmd ( LED1_GPIO_CLK|
 	                           LED2_GPIO_CLK|
 	                           LED3_GPIO_CLK, ENABLE); 

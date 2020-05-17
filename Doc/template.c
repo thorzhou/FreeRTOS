@@ -35,7 +35,6 @@
 //-------------------- public data ------------------------------------------
 
 //-------------------- public functions -------------------------------------
-
 /*! \fn			void function(UNSIGNED32 u32Param1)
  *  \brief 		Description of this function
  *  \param 		param1: Description of parameter

@@ -29,7 +29,6 @@
 
 /* Includes ------------------------------------------------------------------*/
 #include "stm32f4xx_it.h"
-
 #include "FreeRTOS.h"
 #include "task.h" 
 

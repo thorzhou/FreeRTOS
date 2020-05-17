@@ -5,5 +5,53 @@
     C/C++
     - 在preprocesser symbols / define 中预定义USE_STDPERIPH_DRIVER,STM32F429_439xx,
 
-增加串口通信
+增加串口通信USART(universal synchronous asynchronous receiver and transmitter)
+    物理层
+        - TTL 5V代表数字1，0V代表数字0
+        - 232 3-15代表数字1，-3 - -15v代表数字0
+    协议层
+        - 平时高电平，起始位低电平，连续8位，[后接一个时序校验位]，再(0.5\1\1.5\2)个时序高电平停止位
+        - 波特率
+        - 起始和停止信号：起始位低电平
+        - 有效数据：长度可以是5、6、7、8位
+        - 数据校验：奇校验odd(数奇数个数),偶校验even,0校验mark(总是0),和无校验noparity(数据包内无校验位)
+
+    stm32f4xx有4个usart和4个uart，usart1/6在APB1总线上最大频率是90MHz，其他在APB2上最大频率45MHz
+    - 数据寄存器USART_DR，连接TDR和RDR
+    - 控制寄存器USART_CR1
+        - UE    位置1使能
+        - M     位控制数据字长
+        - TE    位置1启动发送
+        - TXE   发送寄存器为空，发送单个字节的时候使用
+        - TC    发送完成，发送多个字节数据的时候使用
+        - TXIE  发送完成中断使能
+        - RE    置1，使能USART接收
+        - RXNE  接收完成置1
+        - OVER8 选择不同的采样方法：1为8倍过采样；0为16倍过采样。（为得到一个信号的真实情况，需要用一个比这个信号频率高的采样信号去检测，称为过采样。RX线识别到特定序列就认为是检测到了起始位，1110X0X0X0000）
+    - USART_CR2
+        - STOP[1:0]控制停止位时间长短，默认使用1个停止位
+        - RXNEIE 使能接收完成中断
+    波特率baud
+        - baud = fplck/(8x(2-OVER8)xUSARTDIV)
+        - USARTDIV 用于生成小数波特率
+
+        中断事件                                事件标志            使能控制位
+        发送数据寄存器为空                       TXE                TXEIE
+        CTS标志                                 CTS                CTSIE
+        发送完成                                TC                 TCIE
+        准备好读取接收到的数据                   RXNE               RXNEIE
+        检测到上溢错误                          ORE                 RXNEIE
+        检测到空闲线路                          IDLE                IDLEIE
+        奇偶校验错误                            PE                  PEIE
+        断路标志                                LBD                 LBDIE
+        多缓冲通信中的噪声标志、上溢错误和帧错误  NF/ORE/FE           EIE
     
+    - 很多模块都预留USART接口来实现与其他模块或者控制器进行数据传输，如GSM,WIFI,蓝牙。硬件设计时注意需要一根共地线。
+    - 开发板硬件使用CH340G模块来实现USB转USART
+    编程要点：
+        - 使能RX和TX引脚GPIO时钟和USART时钟
+        - 初始化GPIO，并将GPIO复用到USART上
+        - 配置USART参数
+        - 配置中断控制器并使能USART接收中断
+        - 使能USART
+        - 在USART接收中断服务函数实现数据接收和发送
