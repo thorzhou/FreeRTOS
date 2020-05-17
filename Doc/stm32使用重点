@@ -5,3 +5,5 @@
     C/C++
     - 在preprocesser symbols / define 中预定义USE_STDPERIPH_DRIVER,STM32F429_439xx,
 
+增加串口通信
+    
