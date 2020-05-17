@@ -31,7 +31,7 @@
 //-------------------- private data -----------------------------------------
 
 //-------------------- private functions declare ----------------------------
-static void NVIC_Configuration(void);
+// static void NVIC_Configuration(void);
 //-------------------- public data ------------------------------------------
 
 //-------------------- public functions -------------------------------------
@@ -73,14 +73,14 @@ void DEBUG_USART_Config(void)
     USART_InitStructure.USART_StopBits = USART_StopBits_1;
     USART_InitStructure.USART_Parity = USART_Parity_No;
     USART_InitStructure.USART_HardwareFlowControl = USART_HardwareFlowControl_None;
-    USART_InitStructure.USART_Mode = USART_Mode_Rx|USART_Mode_Tx;
-  USART_Init(DEBUG_USART, &USART_InitStructure); 
+    USART_InitStructure.USART_Mode = USART_Mode_Rx | USART_Mode_Tx;
+    USART_Init(DEBUG_USART, &USART_InitStructure);
 
-    NVIC_Configuration();
+    // NVIC_Configuration();
     /* 使能串口接收中断 */
-    USART_ITConfig(DEBUG_USART,USART_IT_RXNE,ENABLE);
+    // USART_ITConfig(DEBUG_USART, USART_IT_RXNE, ENABLE);
     /* 使能串口 */
-    USART_Cmd(DEBUG_USART,ENABLE);
+    USART_Cmd(DEBUG_USART, ENABLE);
 }
 // /**
 //   * @brief  USART Init Structure definition
@@ -124,9 +124,10 @@ void DEBUG_USART_Config(void)
 void Usart_SendByte(USART_TypeDef *pUSARTx, uint8_t ch)
 {
     /* send a byte */
-    USART_SendData(pUSARTx,ch);
+    USART_SendData(pUSARTx, ch);
     /* waitfor TXE */
-    while(USART_GetFlagStatus(pUSARTx,USART_FLAG_TXE) == RESET);
+    while (USART_GetFlagStatus(pUSARTx, USART_FLAG_TXE) == RESET)
+        ;
 }
 
 /*! \fn			void Usart_SendString(USART_TypeDef *pUSARTx, char* str)
@@ -136,16 +137,18 @@ void Usart_SendByte(USART_TypeDef *pUSARTx, uint8_t ch)
  *  \exception (None non-reentrant code)
  *  \return 	NONE
  */
-void Usart_SendString(USART_TypeDef *pUSARTx, char* str)
+void Usart_SendString(USART_TypeDef *pUSARTx, char *str)
 {
     uint32_t cnt = 0;
-    do{
-    Usart_SendByte(pUSARTx,*(str+cnt));
-    cnt++;
-    } while (*(str+cnt)!='\0');
+    do
+    {
+        Usart_SendByte(pUSARTx, *(str + cnt));
+        cnt++;
+    } while (*(str + cnt) != '\0');
 
     /* waitfor TXE */
-    while(USART_GetFlagStatus(pUSARTx,USART_FLAG_TC) == RESET);
+    while (USART_GetFlagStatus(pUSARTx, USART_FLAG_TC) == RESET)
+        ;
 }
 
 //-------------------- private functions ------------------------------------
@@ -156,42 +159,42 @@ void Usart_SendString(USART_TypeDef *pUSARTx, char* str)
  *  \exception (None non-reentrant code)
  *  \return 	TRUE: success FALSE: unsuccess
  */
-static void NVIC_Configuration(void)
-{
-    NVIC_InitTypeDef NVIC_InitStructure;
-    /* 嵌套向量中断控制器组选择 */
-    NVIC_PriorityGroupConfig(NVIC_PriorityGroup_2); /*!< 2 bits for pre-emption priority*/
-    NVIC_InitStructure.NVIC_IRQChannel = DEBUG_USART_IRQ;
-    NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 1;
-    NVIC_InitStructure.NVIC_IRQChannelSubPriority = 1;
-    NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
-    NVIC_Init(&NVIC_InitStructure);
-}
-// /** 
-//   * @brief  NVIC Init Structure definition  
+// static void NVIC_Configuration(void)
+// {
+//     NVIC_InitTypeDef NVIC_InitStructure;
+//     /* 嵌套向量中断控制器组选择 */
+//     NVIC_PriorityGroupConfig(NVIC_PriorityGroup_2); /*!< 2 bits for pre-emption priority*/
+//     NVIC_InitStructure.NVIC_IRQChannel = DEBUG_USART_IRQ;
+//     NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 1;
+//     NVIC_InitStructure.NVIC_IRQChannelSubPriority = 1;
+//     NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
+//     NVIC_Init(&NVIC_InitStructure);
+// }
+// /**
+//   * @brief  NVIC Init Structure definition
 //   */
 
-    // typedef struct
-    // {
-    //   uint8_t NVIC_IRQChannel;                    /*!< Specifies the IRQ channel to be enabled or disabled.
-    //                                                    This parameter can be an enumerator of @ref IRQn_Type
-    //                                                    enumeration (For the complete STM32 Devices IRQ Channels
-    //                                                    list, please refer to stm32f4xx.h file) */
+// typedef struct
+// {
+//   uint8_t NVIC_IRQChannel;                    /*!< Specifies the IRQ channel to be enabled or disabled.
+//                                                    This parameter can be an enumerator of @ref IRQn_Type
+//                                                    enumeration (For the complete STM32 Devices IRQ Channels
+//                                                    list, please refer to stm32f4xx.h file) */
 
-    //   uint8_t NVIC_IRQChannelPreemptionPriority;  /*!< Specifies the pre-emption priority for the IRQ channel
-    //                                                    specified in NVIC_IRQChannel. This parameter can be a value
-    //                                                    between 0 and 15 as described in the table @ref MISC_NVIC_Priority_Table
-    //                                                    A lower priority value indicates a higher priority */
+//   uint8_t NVIC_IRQChannelPreemptionPriority;  /*!< Specifies the pre-emption priority for the IRQ channel
+//                                                    specified in NVIC_IRQChannel. This parameter can be a value
+//                                                    between 0 and 15 as described in the table @ref MISC_NVIC_Priority_Table
+//                                                    A lower priority value indicates a higher priority */
 
-    //   uint8_t NVIC_IRQChannelSubPriority;         /*!< Specifies the subpriority level for the IRQ channel specified
-    //                                                    in NVIC_IRQChannel. This parameter can be a value
-    //                                                    between 0 and 15 as described in the table @ref MISC_NVIC_Priority_Table
-    //                                                    A lower priority value indicates a higher priority */
+//   uint8_t NVIC_IRQChannelSubPriority;         /*!< Specifies the subpriority level for the IRQ channel specified
+//                                                    in NVIC_IRQChannel. This parameter can be a value
+//                                                    between 0 and 15 as described in the table @ref MISC_NVIC_Priority_Table
+//                                                    A lower priority value indicates a higher priority */
 
-    //   FunctionalState NVIC_IRQChannelCmd;         /*!< Specifies whether the IRQ channel defined in NVIC_IRQChannel
-    //                                                    will be enabled or disabled.
-    //                                                    This parameter can be set either to ENABLE or DISABLE */
-    // } NVIC_InitTypeDef;
+//   FunctionalState NVIC_IRQChannelCmd;         /*!< Specifies whether the IRQ channel defined in NVIC_IRQChannel
+//                                                    will be enabled or disabled.
+//                                                    This parameter can be set either to ENABLE or DISABLE */
+// } NVIC_InitTypeDef;
 
 /*! \fn			void function(UNSIGNED32 u32Param1)
  *  \brief 		Description of this function
@@ -202,9 +205,10 @@ static void NVIC_Configuration(void)
  */
 int fputc(int ch, FILE *f)
 {
-    USART_SendData(DEBUG_USART,(uint8_t)ch);
-    while (USART_GetFlagStatus(DEBUG_USART,USART_FLAG_TXE)==RESET);
-    return(ch);
+    USART_SendData(DEBUG_USART, (uint8_t)ch);
+    while (USART_GetFlagStatus(DEBUG_USART, USART_FLAG_TXE) == RESET)
+        ;
+    return (ch);
 }
 
 /*! \fn			void function(UNSIGNED32 u32Param1)
@@ -216,18 +220,19 @@ int fputc(int ch, FILE *f)
  */
 int fgetc(FILE *f)
 {
-    while (USART_GetFlagStatus(DEBUG_USART,USART_FLAG_RXNE)==RESET);
+    while (USART_GetFlagStatus(DEBUG_USART, USART_FLAG_RXNE) == RESET)
+        ;
     return (int)USART_ReceiveData(DEBUG_USART);
 }
 
 void DEBUG_USART_IRQHandler(void)
 {
     uint8_t ucTemp;
-    if(USART_GetFlagStatus(DEBUG_USART,USART_IT_RXNE)!=RESET)
+    if (USART_GetFlagStatus(DEBUG_USART, USART_IT_RXNE) != RESET)
     {
         ucTemp = USART_ReceiveData(DEBUG_USART);
-        USART_SendData(DEBUG_USART,ucTemp);
+        USART_SendData(DEBUG_USART, ucTemp);
     }
 }
-    //-----------------------End of file------------------------------------------
-    /** @} */ /* End of group */
+//-----------------------End of file------------------------------------------
+/** @} */ /* End of group */

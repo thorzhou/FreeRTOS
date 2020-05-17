@@ -66,6 +66,14 @@ int main(void)
 	// Usart_SendString(DEBUG_USART, "This is a usart test.\n");
 	printf("This is a test of printf.\n");
 	printf("Welcome to far west.\n");
+	// while (1)
+	// {
+	// 	char ch = getchar();
+	// 	if (ch == 's')
+	// 	{
+	// 		break;
+	// 	}
+	// }
 #endif
 
 	/* 控制LED灯 */
