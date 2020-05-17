@@ -31,7 +31,9 @@
 //-------------------- private data -----------------------------------------
 
 //-------------------- private functions declare ----------------------------
-// static void NVIC_Configuration(void);
+#if (USE_USART1_IRQ == 1)
+static void NVIC_Configuration(void);
+#endif
 //-------------------- public data ------------------------------------------
 
 //-------------------- public functions -------------------------------------
@@ -76,9 +78,11 @@ void DEBUG_USART_Config(void)
     USART_InitStructure.USART_Mode = USART_Mode_Rx | USART_Mode_Tx;
     USART_Init(DEBUG_USART, &USART_InitStructure);
 
-    // NVIC_Configuration();
+#if (USE_USART1_IRQ == 1)
+    NVIC_Configuration();
     /* 使能串口接收中断 */
-    // USART_ITConfig(DEBUG_USART, USART_IT_RXNE, ENABLE);
+    USART_ITConfig(DEBUG_USART, USART_IT_RXNE, ENABLE);
+#endif
     /* 使能串口 */
     USART_Cmd(DEBUG_USART, ENABLE);
 }
@@ -159,21 +163,22 @@ void Usart_SendString(USART_TypeDef *pUSARTx, char *str)
  *  \exception (None non-reentrant code)
  *  \return 	TRUE: success FALSE: unsuccess
  */
-// static void NVIC_Configuration(void)
-// {
-//     NVIC_InitTypeDef NVIC_InitStructure;
-//     /* 嵌套向量中断控制器组选择 */
-//     NVIC_PriorityGroupConfig(NVIC_PriorityGroup_2); /*!< 2 bits for pre-emption priority*/
-//     NVIC_InitStructure.NVIC_IRQChannel = DEBUG_USART_IRQ;
-//     NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 1;
-//     NVIC_InitStructure.NVIC_IRQChannelSubPriority = 1;
-//     NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
-//     NVIC_Init(&NVIC_InitStructure);
-// }
-// /**
-//   * @brief  NVIC Init Structure definition
-//   */
-
+#if (USE_USART1_IRQ == 1)
+static void NVIC_Configuration(void)
+{
+    NVIC_InitTypeDef NVIC_InitStructure;
+    /* 嵌套向量中断控制器组选择 */
+    NVIC_PriorityGroupConfig(NVIC_PriorityGroup_2); /*!< 2 bits for pre-emption priority*/
+    NVIC_InitStructure.NVIC_IRQChannel = DEBUG_USART_IRQ;
+    NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 1;
+    NVIC_InitStructure.NVIC_IRQChannelSubPriority = 1;
+    NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
+    NVIC_Init(&NVIC_InitStructure);
+}
+/**
+  * @brief  NVIC Init Structure definition
+  */
+#endif
 // typedef struct
 // {
 //   uint8_t NVIC_IRQChannel;                    /*!< Specifies the IRQ channel to be enabled or disabled.
