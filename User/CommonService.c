@@ -8,15 +8,15 @@
 //------------------------------------------------------------------------------
 //  $Header$
 //
-//  Company    :
+//  Company    : Suzhou Naxin New Energy Technology, Co., Ltd.
 //
-//  Project    :
+//  Project    : P1001
 //
-//  Filename   :
+//  Filename   : 
 //
 //  Programmer : ZYQ
-//
-//  Description   :
+//                             
+//  Description   : "file description" 
 //
 //              ***  Confidential property of Company name ***
 //                             Copyright(c) Company name, 2020
@@ -25,8 +25,7 @@
 //-------------------- pragmas ----------------------------------------------
 
 //-------------------- include files ----------------------------------------
-#include "stm32f4xx.h"
-#include "config.h"
+#include "stm32f10x.h"
 //-------------------- local definitions ------------------------------------
 
 //-------------------- private data -----------------------------------------
@@ -34,8 +33,19 @@
 //-------------------- private functions declare ----------------------------
 
 //-------------------- public data ------------------------------------------
+u32 g_u32SysTick = 1;
 
 //-------------------- public functions -------------------------------------
+/*! \fn			void Delay(__IO u32 u32Count)
+ *  \brief 		Description of this function
+ *  \param 		u32Count delay time
+ *  \exception (None non-reentrant code)
+ *  \return 	NONE
+ */
+void Delay(__IO u32 u32Count)
+{
+    for (; u32Count != 0; u32Count--);
+}
 /*! \fn			void function(UNSIGNED32 u32Param1)
  *  \brief 		Description of this function
  *  \param 		param1: Description of parameter
@@ -43,82 +53,7 @@
  *  \exception (None non-reentrant code)
  *  \return 	TRUE: success FALSE: unsuccess
  */
-void Delay(__IO uint32_t nCount) //简单的延时函数
-{
-	for (; nCount != 0; nCount--);
-}
-
 //-------------------- private functions ------------------------------------
-/*! \fn			int main(void)
- *  \brief 		main entry
- *  \param 		none
- *  \exception  (None non-reentrant code)
- *  \return 	TRUE: success FALSE: unsuccess
- */
-int main(void)
-{
-	uint32_t i=0;
-	/* LED 端口初始化 */
-	LED_GPIO_Config();
-
-#if (USE_USART1 == 1)
-	DEBUG_USART_Config();
-	DEBUG_USART_DMA_Config();
-	// Usart_SendString(DEBUG_USART, "This is a usart test.\n");
-	printf("This is a test of printf.\n");
-	printf("Welcome to far west.\n");
-	for (i = 0; i < SENDBUFF_SIZE; i++)
-	{
-		SendBuff[i] = 'a';
-	}
-	USART_DMACmd(DEBUG_USART,USART_DMAReq_Tx,ENABLE);
-#endif
-
-	/* 控制LED灯 */
-	while (1)
-	{
-		LED1(ON); // 亮
-		Delay(0xffffff);
-		LED1(OFF); // 灭
-
-		LED2(ON); // 亮
-		Delay(0xffffff);
-		LED2(OFF); // 灭
-
-		LED3(ON); // 亮
-		Delay(0xffffff);
-		LED3(OFF); // 灭
-
-		/*轮流显示 红绿蓝黄紫青白 颜色*/
-		LED_RED;
-		Delay(0xffffff);
-
-		LED_GREEN;
-		Delay(0xffffff);
-
-		LED_BLUE;
-		Delay(0xffffff);
-
-		LED_YELLOW;
-		Delay(0xffffff);
-
-		LED_PURPLE;
-		Delay(0xffffff);
-
-		LED_CYAN;
-		Delay(0xffffff);
-
-		LED_WHITE;
-		Delay(0xffffff);
-
-		LED_RGBOFF;
-		Delay(0xffffff);
-		DMA_Cmd(DMA2_Stream7,DISABLE);
-		DMA2_Stream7->NDTR = 
-	}
-
-	// return 0;
-}
 /*! \fn			void function(UNSIGNED32 u32Param1)
  *  \brief 		Description of this function
  *  \param 		param1: Description of parameter
@@ -126,5 +61,7 @@ int main(void)
  *  \exception (None non-reentrant code)
  *  \return 	TRUE: success FALSE: unsuccess
  */
+
+
 //-----------------------End of file------------------------------------------
 /** @} */ /* End of group */

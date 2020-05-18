@@ -118,9 +118,15 @@ DMA(Direct Memory Access)
         - 配置USART通信功能
         - 设置DMA为存储器带外设模式，设置数据流通道，指定USART数据寄存器为目标地址，循环发送模式
         - 使能DMA数据流
-        - 使能USART的DMA发送请求
+        - 使能USART的DMA发送请求USART_DMACmd
         - DMA传输同时CPU可以运行其他任务
-        
-
+        - DMA传输每次需要(m3)
+            - DMA_Cmd(DMA1_Channel4, DISABLE);
+            - DMA1_Channel4->CNDTR = sMsgTx->uwTxMaxCnt;
+            - DMA_Cmd(DMA1_Channel4, ENABLE);
+            - USART_DMACmd(USART1, USART_DMAReq_Tx, ENABLE);
+            m4
+            - DMA_Cmd(DMA2_Stream7,DISABLE);
+            
 
 

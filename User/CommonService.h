@@ -6,37 +6,36 @@
 //------------------------------------------------------------------------------
 //  $Header$
 //
-//  Company    : 
+//  Company    : Suzhou Naxin New Energy Technology, Co., Ltd.
 //
-//  Project    : 
+//  Project    : P1001
 //
 //  Filename   : 
 //
 //  Programmer : ZYQ
 //                             
-//  Description   : 
+//  Description   : "file description" 
 //
 //              ***  Confidential property of company name ***
 //                             Copyright(c) company name, 2020
 //------------------------------------------------------------------------------
 
-#ifndef CONFIG_H_
-#define CONFIG_H_
+#ifndef COMMON_SERVICE_H_
+#define COMMON_SERVICE_H_
 //-------------------- include files ----------------------------------------
-#include "bsp_led.h"
-#include "bsp_usart1.h"
+void Delay(__IO u32 u32Count);
 
 //-------------------- public definitions -----------------------------------
-#define USE_USART1  1
-                                  
+#define MAX_TIME_COUNT_U32 (0xffffffff - (0xffffffff % 100UL))
+#define MAX_INTERVAL_TIME_OF_RECEIVING_DATA 5UL//ms             
 //-------------------- public data ------------------------------------------
-
+extern u32 g_u32SysTick;
 
 //-------------------- public functions -------------------------------------
 
 
 //-------------------- inline functions -------------------------------------
 
-#endif /* CONFIG_H_ */
+#endif /* COMMON_SERVICE_H_ */
 //-----------------------End of file------------------------------------------
 /** @}*/

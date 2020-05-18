@@ -25,8 +25,11 @@
 //-------------------- include files ----------------------------------------
 #include "stm32f4xx.h"
 #include <stdio.h>
-
+#include "CommonService.h"
 //-------------------- public definitions -----------------------------------
+#define USE_USART1_IRQ 0
+//timer2 1ms中断
+#define INTERVAL_TIME_OF_USART1_BY_DMA  100UL
 /* 8N1 */
 #define DEBUG_USART                 USART1
 #define DEBUG_USART_CLK             RCC_APB2Periph_USART1
@@ -49,7 +52,7 @@
 #define DEBUG_USART_IRQ             USART1_IRQn
 
 #define DEBUG_USART_DR_BASE               (USART1_BASE+0x04)		
-#define SENDBUFF_SIZE                     5000				
+#define SENDBUFF_SIZE                     100			
 #define DEBUG_USART_DMA_CLK               RCC_AHB1Periph_DMA2	
 #define DEBUG_USART_DMA_CHANNEL           DMA_Channel_4
 #define DEBUG_USART_DMA_STREAM            DMA2_Stream7
