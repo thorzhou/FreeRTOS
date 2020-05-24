@@ -13,6 +13,10 @@
     5.set GPIO
     6.set Project manager 
     7.Generate code
+GPIO
+    按键检测：
+    - 按键按下抬起前后都有抖动，需要硬件或软件消抖。按下时开始抬起时结束判断是否发生按键事件。
+    
 增加串口通信USART(universal synchronous asynchronous receiver and transmitter)
     物理层
         - TTL 5V代表数字1，0V代表数字0

@@ -21,7 +21,7 @@
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 #include "gpio.h"
-
+#include "Led.h"
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 
@@ -95,22 +95,14 @@ int main(void)
   while (1)
   {
     /* USER CODE END WHILE */
-    Delay(0xffffff);
-    LED_RED;
-    Delay(0xffffff);
-    LED_GREEN;
-    Delay(0xffffff);
-    LED_BLUE;
-    Delay(0xffffff);
-    LED_YELLOW;
-    Delay(0xffffff);
-    LED_PURPLE;
-    Delay(0xffffff);
-    LED_CYAN;
-    Delay(0xffffff);
-    LED_WHITE;
-    Delay(0xffffff);
-    LED_OFF;
+    if (Key_Scan(KEY1_GPIO_Port, KEY1_Pin) == KEY_ON)
+    {
+      LedFlashing(0x4fffff);
+    }
+    if (Key_Scan(KEY2_GPIO_Port, KEY2_Pin) == KEY_ON)
+    {
+      LED_OFF;
+    }
     /* USER CODE BEGIN 3 */
   }
   /* USER CODE END 3 */
@@ -151,8 +143,7 @@ void SystemClock_Config(void)
   }
   /** Initializes the CPU, AHB and APB busses clocks 
   */
-  RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK|RCC_CLOCKTYPE_SYSCLK
-                              |RCC_CLOCKTYPE_PCLK1|RCC_CLOCKTYPE_PCLK2;
+  RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK | RCC_CLOCKTYPE_SYSCLK | RCC_CLOCKTYPE_PCLK1 | RCC_CLOCKTYPE_PCLK2;
   RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK;
   RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
   RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV4;
@@ -180,7 +171,7 @@ void Error_Handler(void)
   /* USER CODE END Error_Handler_Debug */
 }
 
-#ifdef  USE_FULL_ASSERT
+#ifdef USE_FULL_ASSERT
 /**
   * @brief  Reports the name of the source file and the source line number
   *         where the assert_param error has occurred.
@@ -189,7 +180,7 @@ void Error_Handler(void)
   * @retval None
   */
 void assert_failed(uint8_t *file, uint32_t line)
-{ 
+{
   /* USER CODE BEGIN 6 */
   /* User can add his own implementation to report the file name and line number,
      tex: printf("Wrong parameters value: file %s on line %d\r\n", file, line) */

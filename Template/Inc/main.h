@@ -29,7 +29,7 @@ extern "C" {
 
 /* Includes ------------------------------------------------------------------*/
 #include "stm32f4xx_hal.h"
-#include "CommonService.h"
+
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 
@@ -58,6 +58,10 @@ void Error_Handler(void);
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/
+#define KEY2_Pin GPIO_PIN_13
+#define KEY2_GPIO_Port GPIOC
+#define KEY1_Pin GPIO_PIN_0
+#define KEY1_GPIO_Port GPIOA
 #define LED_R_Pin GPIO_PIN_10
 #define LED_R_GPIO_Port GPIOH
 #define LED_G_Pin GPIO_PIN_11
