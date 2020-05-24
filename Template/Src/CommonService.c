@@ -12,11 +12,11 @@
 //
 //  Project    : P1001
 //
-//  Filename   : 
+//  Filename   :
 //
 //  Programmer : ZYQ
-//                             
-//  Description   : "file description" 
+//
+//  Description   : "file description"
 //
 //              ***  Confidential property of Company name ***
 //                             Copyright(c) Company name, 2020
@@ -43,7 +43,24 @@
  */
 void Delay(__IO unsigned long u32Count)
 {
-    for (; u32Count != 0; u32Count--);
+    for (; u32Count != 0; u32Count--)
+        ;
+}
+
+static __IO uint32_t TimingDelay;
+
+void Delay_ms(__IO uint32_t nTime)
+{ 
+	TimingDelay = nTime;	
+
+	while(TimingDelay != 0);
+}
+void TimingDelay_Decrement(void)
+{
+	if (TimingDelay != 0x00)
+	{ 
+		TimingDelay--;
+	}
 }
 /*! \fn			void function(UNSIGNED32 u32Param1)
  *  \brief 		Description of this function
@@ -60,7 +77,6 @@ void Delay(__IO unsigned long u32Count)
  *  \exception (None non-reentrant code)
  *  \return 	TRUE: success FALSE: unsuccess
  */
-
 
 //-----------------------End of file------------------------------------------
 /** @} */ /* End of group */

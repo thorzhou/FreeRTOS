@@ -24,7 +24,6 @@
 #define LED_H_
 //-------------------- include files ----------------------------------------
 #include "main.h"
-#include "CommonService.h"
 
 //-------------------- public definitions -----------------------------------
 #define digitalHi(port,pin) {port->BSRR=pin;}

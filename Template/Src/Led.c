@@ -32,7 +32,8 @@
 static FunctionalState flag_led_on;
 
 //-------------------- private functions declare ----------------------------
-void LedFlashing(uint32_t speed);
+// void LedFlashing(uint32_t speed);
+void LedFlashing(void);
 //-------------------- public data ------------------------------------------
 
 //-------------------- public functions -------------------------------------
@@ -55,7 +56,7 @@ void Led_Task(void)
     // }
     if (flag_led_on == ENABLE) //这样写的弊端是在这边的时间太久了，需要长时间按键才能关闭LED输出
     {
-        LedFlashing(0x4fffff);
+        LedFlashing();
     }
     else
     {
@@ -69,6 +70,7 @@ void Led_Task(void)
  *  \exception (None non-reentrant code)
  *  \return 	TRUE: success FALSE: unsuccess
  */
+#if 0
 void LedFlashing(uint32_t speed)
 {
     Delay(speed);
@@ -86,6 +88,26 @@ void LedFlashing(uint32_t speed)
     Delay(speed);
     LED_WHITE;
     Delay(speed);
+    LED_OFF;
+    }
+#endif
+void LedFlashing(void)
+{
+    Delay_ms(1000);
+    LED_RED;
+    Delay_ms(1000);
+    LED_GREEN;
+    Delay_ms(1000);
+    LED_BLUE;
+    Delay_ms(1000);
+    LED_YELLOW;
+    Delay_ms(1000);
+    LED_PURPLE;
+    Delay_ms(1000);
+    LED_CYAN;
+    Delay_ms(1000);
+    LED_WHITE;
+    Delay_ms(1000);
     LED_OFF;
 }
 

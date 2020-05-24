@@ -7,9 +7,9 @@
 使用stm32cubeMX
     New project
     1.select MCU
-    2.set RCC   HSE Crystal/Ceramic Resonator
+    2.set RCC   HSE Crystal/Ceramic Resonator 
     3.set SYS   debug Serial wire
-    4.set system clock
+    4.set system clock      这里设置的时钟system_stm32f4xx.c中的SystemCoreClock依旧为160m不知道是不是一个问题
     5.set GPIO
     6.set Project manager 
     7.Generate code
@@ -18,8 +18,15 @@ GPIO
     - 按键按下抬起前后都有抖动，需要硬件或软件消抖。按下时开始抬起时结束判断是否发生按键事件。
 
 NVIC
-    中端配置：1.设置优先级分组，默认4，即主16子0；2.配置具体外设通道的抢占优先级和子优先级；3.HAL_NVIC_EnableIRQ使能中断
-
+    中断配置：1.设置优先级分组，默认4，即主16子0；2.配置具体外设通道的抢占优先级和子优先级；3.HAL_NVIC_EnableIRQ使能中断
+EXIT
+    使用cubeMX配置外部中断只要直接设置引脚输入中断，中断类型如下降沿，然后配置主优先级，enable即可。
+SysTick
+    CM4内核外设，内嵌在NVIC中，是一个24bit的递减计数器，一般设置为180M，递减至0时产生一次中断，一般用于操作系统产生时基，维持系统心跳。
+    - CTRL 控制及状态寄存器
+    - LOAD 重装载数值寄存器
+    - VAL 当前数值寄存器
+    - CALIB 校准数值寄存器
         
 增加串口通信USART(universal synchronous asynchronous receiver and transmitter)
     物理层

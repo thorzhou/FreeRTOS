@@ -25,14 +25,17 @@
 //-------------------- include files ----------------------------------------
 // #include "stm32f429xx.h"
 #include "stm32f4xx_hal.h"
-
+// #include "main.h"
 //-------------------- public definitions -----------------------------------
 
 
 //-------------------- public data ------------------------------------------
 
+
 //-------------------- public functions -------------------------------------
 void Delay(__IO unsigned long u32Count);
+void Delay_ms(__IO uint32_t nTime);
+void TimingDelay_Decrement(void);
 
 //-------------------- inline functions -------------------------------------
 
