@@ -56,9 +56,9 @@
 
 
 //-------------------- public functions -------------------------------------
-void LedFlashing(uint32_t speed);
-uint8_t Key_Scan(GPIO_TypeDef* GPIOx,uint16_t GPIO_Pin);
-
+// void LedFlashing(uint32_t speed);
+// uint8_t Key_Scan(GPIO_TypeDef* GPIOx,uint16_t GPIO_Pin);
+void Led_Task(void);
 //-------------------- inline functions -------------------------------------
 
 #endif /* LED_H_ */

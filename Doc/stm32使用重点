@@ -16,7 +16,11 @@
 GPIO
     按键检测：
     - 按键按下抬起前后都有抖动，需要硬件或软件消抖。按下时开始抬起时结束判断是否发生按键事件。
-    
+
+NVIC
+    中端配置：1.设置优先级分组，默认4，即主16子0；2.配置具体外设通道的抢占优先级和子优先级；3.HAL_NVIC_EnableIRQ使能中断
+
+        
 增加串口通信USART(universal synchronous asynchronous receiver and transmitter)
     物理层
         - TTL 5V代表数字1，0V代表数字0

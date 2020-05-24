@@ -8,15 +8,15 @@
 //------------------------------------------------------------------------------
 //  $Header$
 //
-//  Company    : 
+//  Company    :
 //
-//  Project    : 
+//  Project    :
 //
-//  Filename   : 
+//  Filename   :
 //
 //  Programmer : ZYQ
-//                             
-//  Description   : 
+//
+//  Description   :
 //
 //              ***  Confidential property of Company name ***
 //                             Copyright(c) Company name, 2020
@@ -29,12 +29,39 @@
 //-------------------- local definitions ------------------------------------
 
 //-------------------- private data -----------------------------------------
+static FunctionalState flag_led_on;
 
 //-------------------- private functions declare ----------------------------
-
+void LedFlashing(uint32_t speed);
 //-------------------- public data ------------------------------------------
 
 //-------------------- public functions -------------------------------------
+/*! \fn			void function(UNSIGNED32 u32Param1)
+ *  \brief 		Description of this function
+ *  \param 		param1: Description of parameter
+ *  \param 		param2: Description of parameter
+ *  \exception (None non-reentrant code)
+ *  \return 	TRUE: success FALSE: unsuccess
+ */
+void Led_Task(void)
+{
+    // if (Key_Scan(KEY1_GPIO_Port, KEY1_Pin) == KEY_ON)
+    // {
+    //     flag_led_on = ENABLE;
+    // }
+    // if (Key_Scan(KEY2_GPIO_Port, KEY2_Pin) == KEY_ON)
+    // {
+    //     flag_led_on = DISABLE;
+    // }
+    if (flag_led_on == ENABLE) //这样写的弊端是在这边的时间太久了，需要长时间按键才能关闭LED输出
+    {
+        LedFlashing(0x4fffff);
+    }
+    else
+    {
+        LED_OFF;
+    }
+}
 /*! \fn			void function(UNSIGNED32 u32Param1)
  *  \brief 		Description of this function
  *  \param 		param1: Description of parameter
@@ -69,12 +96,14 @@ void LedFlashing(uint32_t speed)
  *  \exception (None non-reentrant code)
  *  \return 	KEY_ON, KEY_OFF
  */
-uint8_t Key_Scan(GPIO_TypeDef* GPIOx,uint16_t GPIO_Pin)
+uint8_t Key_Scan(GPIO_TypeDef *GPIOx, uint16_t GPIO_Pin)
 {
-    if(HAL_GPIO_ReadPin(GPIOx,GPIO_Pin) == KEY_ON)
+    if (HAL_GPIO_ReadPin(GPIOx, GPIO_Pin) == KEY_ON)
     {
         /* 等待按键释放 */
-        while (HAL_GPIO_ReadPin(GPIOx,GPIO_Pin) == KEY_ON){};
+        while (HAL_GPIO_ReadPin(GPIOx, GPIO_Pin) == KEY_ON)
+        {
+        };
         return KEY_ON;
     }
     else
@@ -91,7 +120,33 @@ uint8_t Key_Scan(GPIO_TypeDef* GPIOx,uint16_t GPIO_Pin)
  *  \exception (None non-reentrant code)
  *  \return 	TRUE: success FALSE: unsuccess
  */
+/**
+  * @brief This function handles EXTI line0 interrupt.
+  */
+void EXTI0_IRQHandler(void)
+{
+    /* USER CODE BEGIN EXTI0_IRQn 0 */
 
+    /* USER CODE END EXTI0_IRQn 0 */
+    HAL_GPIO_EXTI_IRQHandler(GPIO_PIN_0);
+    /* USER CODE BEGIN EXTI0_IRQn 1 */
+    flag_led_on = ENABLE;
 
+    /* USER CODE END EXTI0_IRQn 1 */
+}
+/**
+  * @brief This function handles EXTI line[15:10] interrupts.
+  */
+void EXTI15_10_IRQHandler(void)
+{
+    /* USER CODE BEGIN EXTI15_10_IRQn 0 */
+
+    /* USER CODE END EXTI15_10_IRQn 0 */
+    HAL_GPIO_EXTI_IRQHandler(GPIO_PIN_13);
+    /* USER CODE BEGIN EXTI15_10_IRQn 1 */
+    flag_led_on = DISABLE;
+
+    /* USER CODE END EXTI15_10_IRQn 1 */
+}
 //-----------------------End of file------------------------------------------
 /** @} */ /* End of group */
