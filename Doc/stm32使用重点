@@ -1,0 +1,163 @@
+新建工程
+    Target
+    - 配置魔术棒，要使用printf需要选择 Use MicroLib
+    - 要使用浮点运算FPU，要开微库并且选择Use Single Precision
+    C/C++
+    - 在preprocesser symbols / define 中预定义USE_STDPERIPH_DRIVER,STM32F429_439xx,
+使用stm32cubeMX
+    New project
+    1.select MCU
+    2.set RCC   HSE Crystal/Ceramic Resonator 
+    3.set SYS   debug Serial wire
+    4.set system clock      这里设置的时钟system_stm32f4xx.c中的SystemCoreClock依旧为160m不知道是不是一个问题
+    5.set GPIO
+    6.set Project manager 
+    7.Generate code
+GPIO
+    按键检测：
+    - 按键按下抬起前后都有抖动，需要硬件或软件消抖。按下时开始抬起时结束判断是否发生按键事件。
+
+NVIC
+    中断配置：1.设置优先级分组，默认4，即主16子0；2.配置具体外设通道的抢占优先级和子优先级；3.HAL_NVIC_EnableIRQ使能中断
+EXIT
+    使用cubeMX配置外部中断只要直接设置引脚输入中断，中断类型如下降沿，然后配置主优先级，enable即可。
+SysTick
+    CM4内核外设，内嵌在NVIC中，是一个24bit的递减计数器，一般设置为180M，递减至0时产生一次中断，一般用于操作系统产生时基，维持系统心跳。
+    - CTRL 控制及状态寄存器
+    - LOAD 重装载数值寄存器
+    - VAL 当前数值寄存器
+    - CALIB 校准数值寄存器
+        
+增加串口通信USART(universal synchronous asynchronous receiver and transmitter)
+    物理层
+        - TTL 5V代表数字1，0V代表数字0
+        - 232 3-15代表数字1，-3 - -15v代表数字0
+    协议层
+        - 平时高电平，起始位低电平，连续8位，[后接一个时序校验位]，再(0.5\1\1.5\2)个时序高电平停止位
+        - 波特率
+        - 起始和停止信号：起始位低电平
+        - 有效数据：长度可以是5、6、7、8位
+        - 数据校验：奇校验odd(数奇数个数),偶校验even,0校验mark(总是0),和无校验noparity(数据包内无校验位)
+
+    stm32f4xx有4个usart和4个uart，usart1/6在APB1总线上最大频率是90MHz，其他在APB2上最大频率45MHz
+    - 数据寄存器USART_DR，连接TDR和RDR
+    - 控制寄存器USART_CR1
+        - UE    位置1使能
+        - M     位控制数据字长
+        - TE    位置1启动发送
+        - TXE   发送寄存器为空，发送单个字节的时候使用
+        - TC    发送完成，发送多个字节数据的时候使用
+        - TXIE  发送完成中断使能
+        - RE    置1，使能USART接收
+        - RXNE  接收完成置1
+        - OVER8 选择不同的采样方法：1为8倍过采样；0为16倍过采样。（为得到一个信号的真实情况，需要用一个比这个信号频率高的采样信号去检测，称为过采样。RX线识别到特定序列就认为是检测到了起始位，1110X0X0X0000）
+    - USART_CR2
+        - STOP[1:0]控制停止位时间长短，默认使用1个停止位
+        - RXNEIE 使能接收完成中断
+    波特率baud
+        - baud = fplck/(8x(2-OVER8)xUSARTDIV)
+        - USARTDIV 用于生成小数波特率
+
+        中断事件                                事件标志            使能控制位
+        发送数据寄存器为空                       TXE                TXEIE
+        CTS标志                                 CTS                CTSIE
+        发送完成                                TC                 TCIE
+        准备好读取接收到的数据                   RXNE               RXNEIE
+        检测到上溢错误                          ORE                 RXNEIE
+        检测到空闲线路                          IDLE                IDLEIE
+        奇偶校验错误                            PE                  PEIE
+        断路标志                                LBD                 LBDIE
+        多缓冲通信中的噪声标志、上溢错误和帧错误  NF/ORE/FE           EIE
+    
+    - 很多模块都预留USART接口来实现与其他模块或者控制器进行数据传输，如GSM,WIFI,蓝牙。硬件设计时注意需要一根共地线。
+    - 开发板硬件使用CH340G模块来实现USB转USART
+    编程要点：
+        - 使能RX和TX引脚GPIO时钟和USART时钟
+        - 初始化GPIO，并将GPIO复用到USART上
+        - 配置USART参数
+        - 配置中断控制器并使能USART接收中断
+        - 使能USART
+        - 在USART接收中断服务函数实现数据接收和发送
+    1.25.0版HAL库和旧版有很大不同
+    
+DMA(Direct Memory Access)
+    外设寄存器与存储器之间和存储器与存储器之间三种模式，好处是不占CPU，速度快
+    - 外设通道选择
+        - stm32f4xx有两个DMA，每个DMA控制器有8个数据流，每个数据流对应8个外设请求，DMA_SxCR的CHSEL[2:0]选择对应的通道作为该数据流的目标外设。
+        - 每个外设请求占用一个数据流通道，一旦某个数据流被占用，该数据流的其他通道处于不可用状态
+    - 仲裁器：判断同一个DMA的多个数据流哪个具有优先权
+        - 配置数据流时可以通过配置DMA_SxCR寄存器的PL[1:0]，设置为非常高，高，中，低4个级别
+        - 如果两个数据流优先级相同则取决于数据流编号，越低优先级越高
+    - FIFO
+        - 每个数据流独立拥有4级32位FIFO，有直接模式和FIFO模式
+            - 直接模式在每个外设请求都立即启动对存储器传输
+            - FIFO源数据传输到目标地址之前临时存放这些数据。可通过xFIFO控制寄存器DMA_SxFCR的FTH[1:0]来控制FIFO的阈值，分为1/4,1/2,3/4,1,数据量达到阈值启动传输。
+                - FIFO在源数据和目标地址数据宽度不同时很有用
+    - DMA1 没有AHB2外设访问权，只连接APB1外设，所以不能实现存储器到存储器传输
+    - DMA_SxCR      DIR[1:0]    选择三种传输模式
+    - DMA_SxCR      PSIZE[1:0]  外设数据宽度        //直接模式要求外设和存储器数据宽度大小一样,只使用PSIZE
+    - DMA_SxCR      MSIZE[1:0]  存储器数据宽度   
+    - DMA_SxCR      EN   
+    - DMA_SxPAR     用来指定外设地址，是一个32位数据有效寄存器
+        - 外设到存储器模式：DMA_SxCR的DIR[1:0]为‘00’，DMA_SxPAR为外设地址也是源地址，DMA_SxM0AR为存储器地址也是目标地址
+        - 存储器到存储器模式：DIR[1:0]为‘10’，配置相同
+        - 存储器到外设模式：DIR[1:0]为‘01’，DMA_SxM0AR作为源地址，DMA_SxPAR作为目标地址
+    - DMA_SxNDTR    要传输的数目值，传输完成后停止。16位。
+    
+    流控制器
+        - 如果无法确定数据的数量，DMA就无法自动控制传输停止，此时需要外设通过硬件通信向DMA控制器发送停止传输信号，只有SDIO才有这个功能。
+
+    循环模式
+        - DMA_SxCR的CIRC位使能
+    
+    传输类型
+        - 单次single
+        - 突发burst：在传输阶段实现告诉传输，完成后回复正常速度。为达到该效果要占用AHB总线，保证要求每个数据项在传输过程不被分割。
+            - 外设：PBURST[1:0]不为0,PINC为1
+            - 存储器：MBURST[1:0]不为0,MINC为1
+            - 需要结合FIFO，要求FIFO阈值一定要是内存突发传输数据量的整数倍
+    直接模式
+        - 默认模式，不使能FIFO阈值级别
+        - 每个外设请求都立即启动对存储器传输的单次传输。源地址和目标地址数据宽度须一致，只有PSIZE控制。不支持突发传输。不能用于存储器到存储器。
+    双缓冲模式
+        - DMA_SxCR的DBM位1启用，并自动激活循环模式。
+        - 不用于存储器到存储器
+        - DMA_SxM1AR将被激活，先传输DMA_SxM0AR再传输DMA_SxM1AR，循环。
+        - TCIF置1传输完成，可产生中断
+        - DMA访问使用DMA_SxM0AR时CT=0,DMA访问DMA_SxM1AR时CT=1，CPU不能和DMA同时访问一个地址，但是可以访问另一个
+        - DMA未使能时可以直接改写CT，控制开始传输目标
+        - 多应用于需要解码程序的地方，如MP3.
+            - MP3是被压缩的文件格式，需要特定的解码库程序来解码文件才能得到可以播放的PCM信号。
+            - 解码需要一定时间，常规方法是读取一段原始数据到缓冲区，然后对缓冲区内容解码，后输出到音频播放电路
+            - 这对CPU运算速度要求高，很容易出现播放不流畅现象，使用双缓冲模式就可以达到解码和输出音频数据同步进行的效果
+    DMA中断：每个DMA数据流可以在发生以下事件时产生中断
+        - 达到半传输：HTIF,需使能HTIE中断控制位
+        - 传输完成：TCIF,需使能TCIE
+        - 传输错误：TEIF,需使能TEIE；DMA访问总线或双缓冲模式下访问受限存储器
+        - FIFO错误：FEIF，需使能FEIE；上溢下溢
+        - 直接模式错误：DMEIF,需使能DMEIE；外设到存储器的直接模式下，因为存储器总线没得到授权，使得先前数据没有完成被传输到存储器空间上
+    
+    存储器到USART1
+        编程要点
+        - 配置USART通信功能
+        - 设置DMA为存储器带外设模式，设置数据流通道，指定USART数据寄存器为目标地址，循环发送模式
+        - 使能DMA数据流
+        - 使能USART的DMA发送请求USART_DMACmd
+        - DMA传输同时CPU可以运行其他任务
+        - DMA传输每次需要(m3)
+            - DMA_Cmd(DMA1_Channel4, DISABLE);
+            - DMA1_Channel4->CNDTR = sMsgTx->uwTxMaxCnt;
+            - DMA_Cmd(DMA1_Channel4, ENABLE);
+            - USART_DMACmd(USART1, USART_DMAReq_Tx, ENABLE);
+            m4
+            - DMA_Cmd(DMA2_Stream7,DISABLE);
+    使用1.25.0版HAL库：
+        - 默认设置开启DMA所有中断，用起来太费劲了，屏蔽DMA中断。发送完成后:
+            HAL_UART_DMAStop(&huart1);
+            if(HAL_UART_Transmit_DMA(&huart1,(uint8_t *)str,strlen(str))!=HAL_OK)
+            {
+                Error_Handler();
+            }
+        - 设定UART_MSG结构体，需要发送时使用SetUartTxData设定数据，在执行UartTxProcessing时具体发送。
+        - 在时间中断里调用Uart_Rx_Complete_Detecter，超出设定时间则判断为一帧数据结束；在循环中执行UartRxProcessing时具体解析。
+        - 有一个问题，在重启发送的时候关闭DMA传输使用的是__HAL_DMA_DISABLE，而接收使用的是HAL_UART_DMAStop，不能混用。
