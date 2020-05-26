@@ -160,3 +160,4 @@ DMA(Direct Memory Access)
             }
         - 设定UART_MSG结构体，需要发送时使用SetUartTxData设定数据，在执行UartTxProcessing时具体发送。
         - 在时间中断里调用Uart_Rx_Complete_Detecter，超出设定时间则判断为一帧数据结束；在循环中执行UartRxProcessing时具体解析。
+        - 有一个问题，在重启发送的时候关闭DMA传输使用的是__HAL_DMA_DISABLE，而接收使用的是HAL_UART_DMAStop，不能混用。

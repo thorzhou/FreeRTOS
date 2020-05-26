@@ -51,7 +51,7 @@ Module.symvers
 Mkfile.old
 dkms.conf
 
-Project/Objects/
-Project/Output/
-Project/Listings/
+
 .vscode/
+Template/MDK-ARM/Template.uvoptx
+Template/MDK-ARM/Template.uvguix.Lucas
