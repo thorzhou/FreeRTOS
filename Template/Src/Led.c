@@ -142,6 +142,7 @@ uint8_t Key_Scan(GPIO_TypeDef *GPIOx, uint16_t GPIO_Pin)
  *  \exception (None non-reentrant code)
  *  \return 	TRUE: success FALSE: unsuccess
  */
+#if 0
 /**
   * @brief This function handles EXTI line0 interrupt.
   */
@@ -170,5 +171,6 @@ void EXTI15_10_IRQHandler(void)
 
     /* USER CODE END EXTI15_10_IRQn 1 */
 }
+#endif
 //-----------------------End of file------------------------------------------
 /** @} */ /* End of group */

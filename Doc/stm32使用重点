@@ -78,7 +78,8 @@ SysTick
         - 配置中断控制器并使能USART接收中断
         - 使能USART
         - 在USART接收中断服务函数实现数据接收和发送
-
+    1.25.0版HAL库和旧版有很大不同
+    
 DMA(Direct Memory Access)
     外设寄存器与存储器之间和存储器与存储器之间三种模式，好处是不占CPU，速度快
     - 外设通道选择
@@ -150,6 +151,12 @@ DMA(Direct Memory Access)
             - USART_DMACmd(USART1, USART_DMAReq_Tx, ENABLE);
             m4
             - DMA_Cmd(DMA2_Stream7,DISABLE);
-            
-
-
+    使用1.25.0版HAL库：
+        - 默认设置开启DMA所有中断，用起来太费劲了，屏蔽DMA中断。发送完成后:
+            HAL_UART_DMAStop(&huart1);
+            if(HAL_UART_Transmit_DMA(&huart1,(uint8_t *)str,strlen(str))!=HAL_OK)
+            {
+                Error_Handler();
+            }
+        - 设定UART_MSG结构体，需要发送时使用SetUartTxData设定数据，在执行UartTxProcessing时具体发送。
+        - 在时间中断里调用Uart_Rx_Complete_Detecter，超出设定时间则判断为一帧数据结束；在循环中执行UartRxProcessing时具体解析。
