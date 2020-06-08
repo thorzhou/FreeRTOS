@@ -1,0 +1,46 @@
+stm32f4xx_hal_def.h
+
+GPIO Init structure definition:         GPIO_InitTypeDef    
+GPIO_PinState:                          GPIO_PIN_RESET=0, GPIO_PIN_SET
+GPIO pins define:                       GPIO_PIN_0-15   GPIO_PIN_All
+GPIO Configuration Mode:                GPIO_MODE_INPUT...
+GPIO Output Maximum frequency:          GPIO_SPEED_FREQ_HIGH...
+GPIO Pull-Up or Pull-Down Activation:   GPIO_NOPULL
+Checks whether the specified EXTI line flag is set or not:
+                                        #define __HAL_GPIO_EXTI_GET_FLAG(__EXTI_LINE__) (EXTI->PR & (__EXTI_LINE__))
+Clears the EXTI's line pending flags.
+                                        #define __HAL_GPIO_EXTI_CLEAR_FLAG(__EXTI_LINE__) (EXTI->PR = (__EXTI_LINE__))
+Checks whether the specified EXTI line is asserted or not.
+                                        #define __HAL_GPIO_EXTI_GET_IT(__EXTI_LINE__) (EXTI->PR & (__EXTI_LINE__))
+Clears the EXTI's line pending bits.
+                                        #define __HAL_GPIO_EXTI_CLEAR_IT(__EXTI_LINE__) (EXTI->PR = (__EXTI_LINE__))
+Generates a Software interrupt on selected EXTI line.
+                                        #define __HAL_GPIO_EXTI_GENERATE_SWIT(__EXTI_LINE__) (EXTI->SWIER |= (__EXTI_LINE__))
+
+/** @addtogroup GPIO_Exported_Functions_Group2
+  * @{
+  */
+/* IO operation functions *****************************************************/
+Reads the specified input port pin. retval The input port pin value.
+                                        GPIO_PinState HAL_GPIO_ReadPin(GPIO_TypeDef* GPIOx, uint16_t GPIO_Pin);
+Sets or clears the selected data port bit.                                       
+                                        void HAL_GPIO_WritePin(GPIO_TypeDef* GPIOx, uint16_t GPIO_Pin, GPIO_PinState PinState);
+Sets or clears the selected data port bit.                                        
+                                        void HAL_GPIO_TogglePin(GPIO_TypeDef* GPIOx, uint16_t GPIO_Pin);
+Locks GPIO Pins configuration registers.(锁定gpio配置，除非重新配置；通过GPIOx_LCKR配置锁定寄存器实现)
+                                        HAL_StatusTypeDef HAL_GPIO_LockPin(GPIO_TypeDef* GPIOx, uint16_t GPIO_Pin);
+This function handles EXTI interrupt request.
+                                        void HAL_GPIO_EXTI_IRQHandler(uint16_t GPIO_Pin);
+EXTI line detection callbacks.
+                                        void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin);
+GPIO_Private_Macros GPIO Private Macros (判断GPIO配置，一般应该用不上)
+                                        IS_GPIO_PIN_ACTION...
+
+cubeMX config:
+    - GPIO output level:    low/high    初始化时高低电平
+    - GPIO mode:            pp/od       推挽/开漏
+    - GPIO pullup/pulldown: none/pull up/pull down 上拉下拉
+    - Maximum output speed: low~very high 输出速度
+    - User label:           用户定义标签，在main.h中
+
+SystemCoreClock不影响systick时钟

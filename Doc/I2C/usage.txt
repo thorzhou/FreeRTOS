@@ -1,0 +1,116 @@
+存储器
+    - RAM
+        - DRAM Dynamic，DRAM的存储单元以电容的电荷来表示数据，有电荷表示1，无电荷表示0.但时间一长代表1的电容会放电代表0的电容会吸收电荷，因此需要定期刷新操作，也就是所谓的动态的意思。
+            - SDRAM synchronous根据通讯方式分为同步和异步,根据通讯时是否需要同步时钟信号来区分,上升沿表示有效数据，由于同步通讯速度更快，所以SDRAM使用更广泛。
+            - DDR SDRAM Double Data Rate 存储特性和SDRAM一样，但是在上升沿和下降沿各表示一个数据，在1个时钟周期内可以表示2个数据，所以在相同的时钟频率下提高了一倍的通讯速度。
+            - DDR2 DDR3 和DDR没有区别，只是提高了同步时钟频率
+        - SRAM 以锁存器存储数据，不需要定时刷新，所以称为static。
+        - DRAM的结构相比SRAM要简单很多，所以成本更低，集成度更高；但是DRAM的定容结构决定了它的存储速度不如SRAM。
+        - 所以SRAM一般用于CPU内部高速缓存Cache，而外部扩展的内存使用DRAM。
+    - ROM 非易失性存储器
+        - MASK ROM 掩膜，内部数据在生产时固化，不可修改，优势是大批量成本低。
+        - OTP ROM One Time Programable，NXP的芯片内常用来存储密钥
+        - EPROM Erasable Programmable ROM，可重复擦写，但是需要紫外线照射芯片内部擦除数据，已被淘汰。
+        - EEPROM Electrically EPROM,电可擦除存储器，擦除和写入都是直接使用电路控制，不需要外部设备。而且可以按字节为单位修改数据，无需整个芯片擦除。
+        - FLASH 闪存        同容量成本  集成度  介质类型    地址线和数据线  擦除单元    读写单元    读取速度    写入速度    坏块    是否支持XIP
+            - NOR FLASH     较贵        较低    随机存储    独立分开        扇区/块     字节        较快        较慢      较少      支持
+            - NAND FLASH    较便宜      较高    连续存储    共用            扇区/块     块          较慢        较快      较多      不支持
+            - 写入前都需要擦除，NOR和NAND的特性差别是由地址/数据线是否分开导致的，NOR分开可以按字节读写数据，存储代码指令，CPU给NOR一个地址，NOR就能向CPU返回一个数据让CPU执行，中间不需要额外的处理操作。
+              所以代码存储在NAND上，需要先加载到RAM中，，再由CPU执行。NAND坏块多，而且坏一个一整个块不能用，NOR坏块少寿命长，由于坏块的存在FLASH都要探测/错误更正(EDC/ECC)算法来确保数据的正确性。
+            - NOR FLASH用于代码存储，NAND FLASH用于大数据存储，包括SD卡，U盘，固态硬件。    
+I2C：主要用于IC间通信
+    物理层：
+    - 多个主机多个从机
+    - SDA,SCL两条总线
+    - 每个设备都有一个独立的地址，主机利用不同地址进行不同设备间通信
+    - 总线都带2-15V上拉电阻，设备空闲时输出高阻态
+    - 多个主机使用总线时，通过仲裁决定
+    - 三种传输模式：标准模式100kb/s,快速模式400kb/s,高速模式1Mb/s
+    - 连接到总线IC数量受最大电容400pF限制
+    协议层
+    - 主机起始信号，SCL下降沿
+    - 从机地址
+    - 传输方向 R/W 1/0
+    - 从机应答ACK
+    - 8bit数据，主/从ACK，可重复；（ACK低电平，NACK高电平）
+    - 写入结束：主机发送停止传输信号P；读取结束：主机发送NACK；SCL上升沿
+    - 常用复合模式，先写入一段数据告诉从机读写地址，然后再读写这个地址内容
+    STM32中I2C外设，SMBus是用于laptop电池管理的；模拟和数字噪声滤波器，可以在I2C_CR1寄存器内配置使用，注意要在I2C禁止时配置。
+    实验中EEPROM芯片AT24C02
+        - 设备地址7位高4位固定为1010b，低3位由A0/A1/A2信号线的电平决定，开发板默认000.
+        - 使用时地址结合R/W位，合为一个byte使用，即默认0xA0
+        - 芯片有WP脚，电平为高时禁止写入
+        - 单字节时序规定，写入数据时，第一个字节为内存地址，第二个字节是要写入的数据内容
+        - 页写入时序，第一个内存地址，后面的按次序写入，该芯片一次最多8个字节即页大小8byte
+        - eeprom的页写入只是为了加速传输，并不是只能按照页读写
+        - 读数据：先发送设备地址寻址（写方向），接着发送要读取的内存地址；在此使用I2C发送设备地址寻址，但变为读方向，EEPROM向主机返回从内存地址开始的数据，只要主机响应ACK，就会一直传输下去，主机想结束时发送NACK即可。
+I2C_InitTypeDef:
+uint32_t ClockSpeed         仅支持标准模式100k和快速模式400k
+uint32_t DutyCycle          快速模式默认2：1
+uint32_t OwnAddress1        自身地址1
+uint32_t AddressingMode     选择7bit地址或10bit地址
+uint32_t DualAddressMode    双重地址模式
+uint32_t OwnAddress2        自身地址2
+uint32_t GeneralCallMode    关于作为从模式时的广播呼叫模式设置
+uint32_t NoStretchMode      禁止时钟延长模式设置，用于在从模式下禁止之中延长，主模式下必须保持关闭
+
+typedef struct __I2C_HandleTypeDef
+{
+  I2C_TypeDef                *Instance;      /*!< I2C registers base address               */
+  I2C_InitTypeDef            Init;           /*!< I2C communication parameters             */
+  uint8_t                    *pBuffPtr;      /*!< Pointer to I2C transfer buffer           */
+  uint16_t                   XferSize;       /*!< I2C transfer size                        */
+  __IO uint16_t              XferCount;      /*!< I2C transfer counter                     */
+  __IO uint32_t              XferOptions;    /*!< I2C transfer options                     */
+  __IO uint32_t              PreviousState;  /*!< I2C communication Previous state and mode context for internal usage */
+  DMA_HandleTypeDef          *hdmatx;        /*!< I2C Tx DMA handle parameters             */
+  DMA_HandleTypeDef          *hdmarx;        /*!< I2C Rx DMA handle parameters             */
+  HAL_LockTypeDef            Lock;           /*!< I2C locking object                       */
+  __IO HAL_I2C_StateTypeDef  State;          /*!< I2C communication state                  */
+  __IO HAL_I2C_ModeTypeDef   Mode;           /*!< I2C communication mode                   */
+  __IO uint32_t              ErrorCode;      /*!< I2C Error code                           */
+  __IO uint32_t              Devaddress;     /*!< I2C Target device address                */
+  __IO uint32_t              Memaddress;     /*!< I2C Target memory address                */
+  __IO uint32_t              MemaddSize;     /*!< I2C Target memory address  size          */
+  __IO uint32_t              EventCount;     /*!< I2C Event counter                        */
+
+#if (USE_HAL_I2C_REGISTER_CALLBACKS == 1)
+  void (* MasterTxCpltCallback)(struct __I2C_HandleTypeDef *hi2c);           /*!< I2C Master Tx Transfer completed callback */
+  void (* MasterRxCpltCallback)(struct __I2C_HandleTypeDef *hi2c);           /*!< I2C Master Rx Transfer completed callback */
+  void (* SlaveTxCpltCallback)(struct __I2C_HandleTypeDef *hi2c);            /*!< I2C Slave Tx Transfer completed callback  */
+  void (* SlaveRxCpltCallback)(struct __I2C_HandleTypeDef *hi2c);            /*!< I2C Slave Rx Transfer completed callback  */
+  void (* ListenCpltCallback)(struct __I2C_HandleTypeDef *hi2c);             /*!< I2C Listen Complete callback              */
+  void (* MemTxCpltCallback)(struct __I2C_HandleTypeDef *hi2c);              /*!< I2C Memory Tx Transfer completed callback */
+  void (* MemRxCpltCallback)(struct __I2C_HandleTypeDef *hi2c);              /*!< I2C Memory Rx Transfer completed callback */
+  void (* ErrorCallback)(struct __I2C_HandleTypeDef *hi2c);                  /*!< I2C Error callback                        */
+  void (* AbortCpltCallback)(struct __I2C_HandleTypeDef *hi2c);              /*!< I2C Abort callback                        */
+  void (* AddrCallback)(struct __I2C_HandleTypeDef *hi2c, uint8_t TransferDirection, uint16_t AddrMatchCode);  /*!< I2C Slave Address Match callback */
+  void (* MspInitCallback)(struct __I2C_HandleTypeDef *hi2c);                /*!< I2C Msp Init callback                     */
+  void (* MspDeInitCallback)(struct __I2C_HandleTypeDef *hi2c);              /*!< I2C Msp DeInit callback                   */
+#endif  /* USE_HAL_I2C_REGISTER_CALLBACKS */
+
+} I2C_HandleTypeDef;
+
+1.配置：配置自身地址1时，7位地址模式下生成的代码会自动左移1位
+2.To check if target device is ready for communication, use function HAL_I2C_IsDeviceReady()
+3.IO
+Polling mode IO operation:
+    - HAL_I2C_Master_Transmit()
+    - HAL_I2C_Master_Receive()
+    - HAL_I2C_Slave_Transmit()
+    - HAL_I2C_Slave_Receive()
+Polling mode IO MEM operation:
+    - HAL_I2C_Mem_Write()
+    - HAL_I2C_Mem_Read()
+Interrupt mode and DMA mode 暂时不看
+
+HAL driver macro list
+    - __HAL_I2C_ENABLE
+    - __HAL_I2C_DISABLE
+    - __HAL_I2C_GET_FLAG
+    - __HAL_I2C_CLEAR_FLAG
+    - __HAL_I2C_ENABLE_IT
+    - __HAL_I2C_DISABLE_IT
+
+polling mode只需要HAL_I2C_Mem_Write()HAL_I2C_Mem_Read()HAL_I2C_IsDeviceReady()
+AT24C02写入间隔5ms，所以页写入之间也需要有5ms的延时

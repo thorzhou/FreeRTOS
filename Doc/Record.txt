@@ -1,0 +1,180 @@
+stm32f4 
+    st官方主推HAL(hardware abstraction layer)库和LL(low layer)库，HAL库的特色是高度封装各种回调函数，LL库接近原标准库。标准库已不再更新，并且HAL库有助于学习指针数据结构，rtos，tcpip等。
+    stm32f4是Cortex-M4内核，并且和其他stm32系列芯片有高可移植性。
+    cubemx还提供一些middleware components,例如USB host, device stack, HID,MSC,CDC,Audio,MTP; Graphics:emWin,ST-TouchGFX,LibJPEG; CMSIS-RTOS,FreeRTOS;FatFS;TCP/IP;SSL/TLS,mbedTLS
+
+stm32cubeMX 自动生成的HAL库代码所做的
+    - 包含所需库
+    - 包含include path
+    - 初始化HAL；SysTick ISR使能，用作HAL_Delay()；初始化时钟树
+    - 使用中间件前需要把配置文件加入工程，需删除文件名中的_template，xxx_conf_template.h
+    - 外设初始化:
+        - start by writing the peripheral HAL_PPP_MspInit function.
+            - enable peripheral clock
+            - configure gpio
+            - configure DMA channel and enable DMAi interrupt
+            - enable peripheral interrupt
+        - edit the stm32f4xx_it.c to call the required interrupt handlers(peripheral and DMA)
+        - write process complete callback functions if the user plans to use peripheral interrupt or DMA
+        - in the main.c file, initialize the peripheral handle structure, then call the function HAL_PPPP_Init() to initialize the peripheral
+    - application process
+
+新建工程
+    Target
+    - 配置魔术棒，要使用printf需要选择 Use MicroLib
+    - 要使用浮点运算FPU，要开微库并且选择Use Single Precision
+    C/C++
+    - 在preprocesser symbols / define 中预定义USE_STDPERIPH_DRIVER,STM32F429_439xx,
+使用stm32cubeMX
+    New project
+    1.select MCU
+    2.set RCC   HSE Crystal/Ceramic Resonator 
+    3.set SYS   debug Serial wire
+    4.set system clock      这里设置的时钟system_stm32f4xx.c中的SystemCoreClock依旧为16m不知道是不是一个问题
+    5.set GPIO
+    6.set Project manager 
+    7.Generate code
+GPIO
+    按键检测：
+    - 按键按下抬起前后都有抖动，需要硬件或软件消抖。按下时开始抬起时结束判断是否发生按键事件。
+
+NVIC
+    中断配置：1.设置优先级分组，默认4，即主16子0；2.配置具体外设通道的抢占优先级和子优先级；3.HAL_NVIC_EnableIRQ使能中断
+EXIT
+    使用cubeMX配置外部中断只要直接设置引脚输入中断，中断类型如下降沿，然后配置主优先级，enable即可。
+SysTick
+    CM4内核外设，内嵌在NVIC中，是一个24bit的递减计数器，一般设置为180M，递减至0时产生一次中断，一般用于操作系统产生时基，维持系统心跳。
+    MX自动生成的syscoreclock默认16M，手动改为180M
+    - CTRL 控制及状态寄存器
+    - LOAD 重装载数值寄存器
+    - VAL 当前数值寄存器
+    - CALIB 校准数值寄存器
+        
+增加   
+DMA(Direct Memory Access)
+    外设寄存器与存储器之间和存储器与存储器之间三种模式，好处是不占CPU，速度快
+    - 外设通道选择
+        - stm32f4xx有两个DMA，每个DMA控制器有8个数据流，每个数据流对应8个外设请求，DMA_SxCR的CHSEL[2:0]选择对应的通道作为该数据流的目标外设。
+        - 每个外设请求占用一个数据流通道，一旦某个数据流被占用，该数据流的其他通道处于不可用状态
+    - 仲裁器：判断同一个DMA的多个数据流哪个具有优先权
+        - 配置数据流时可以通过配置DMA_SxCR寄存器的PL[1:0]，设置为非常高，高，中，低4个级别
+        - 如果两个数据流优先级相同则取决于数据流编号，越低优先级越高
+    - FIFO
+        - 每个数据流独立拥有4级32位FIFO，有直接模式和FIFO模式
+            - 直接模式在每个外设请求都立即启动对存储器传输
+            - FIFO源数据传输到目标地址之前临时存放这些数据。可通过xFIFO控制寄存器DMA_SxFCR的FTH[1:0]来控制FIFO的阈值，分为1/4,1/2,3/4,1,数据量达到阈值启动传输。
+                - FIFO在源数据和目标地址数据宽度不同时很有用
+    - DMA1 没有AHB2外设访问权，只连接APB1外设，所以不能实现存储器到存储器传输
+    - DMA_SxCR      DIR[1:0]    选择三种传输模式
+    - DMA_SxCR      PSIZE[1:0]  外设数据宽度        //直接模式要求外设和存储器数据宽度大小一样,只使用PSIZE
+    - DMA_SxCR      MSIZE[1:0]  存储器数据宽度   
+    - DMA_SxCR      EN   
+    - DMA_SxPAR     用来指定外设地址，是一个32位数据有效寄存器
+        - 外设到存储器模式：DMA_SxCR的DIR[1:0]为‘00’，DMA_SxPAR为外设地址也是源地址，DMA_SxM0AR为存储器地址也是目标地址
+        - 存储器到存储器模式：DIR[1:0]为‘10’，配置相同
+        - 存储器到外设模式：DIR[1:0]为‘01’，DMA_SxM0AR作为源地址，DMA_SxPAR作为目标地址
+    - DMA_SxNDTR    要传输的数目值，传输完成后停止。16位。
+    
+    流控制器
+        - 如果无法确定数据的数量，DMA就无法自动控制传输停止，此时需要外设通过硬件通信向DMA控制器发送停止传输信号，只有SDIO才有这个功能。
+
+    循环模式
+        - DMA_SxCR的CIRC位使能
+    
+    传输类型
+        - 单次single
+        - 突发burst：在传输阶段实现告诉传输，完成后回复正常速度。为达到该效果要占用AHB总线，保证要求每个数据项在传输过程不被分割。
+            - 外设：PBURST[1:0]不为0,PINC为1
+            - 存储器：MBURST[1:0]不为0,MINC为1
+            - 需要结合FIFO，要求FIFO阈值一定要是内存突发传输数据量的整数倍
+    直接模式
+        - 默认模式，不使能FIFO阈值级别
+        - 每个外设请求都立即启动对存储器传输的单次传输。源地址和目标地址数据宽度须一致，只有PSIZE控制。不支持突发传输。不能用于存储器到存储器。
+    双缓冲模式
+        - DMA_SxCR的DBM位1启用，并自动激活循环模式。
+        - 不用于存储器到存储器
+        - DMA_SxM1AR将被激活，先传输DMA_SxM0AR再传输DMA_SxM1AR，循环。
+        - TCIF置1传输完成，可产生中断
+        - DMA访问使用DMA_SxM0AR时CT=0,DMA访问DMA_SxM1AR时CT=1，CPU不能和DMA同时访问一个地址，但是可以访问另一个
+        - DMA未使能时可以直接改写CT，控制开始传输目标
+        - 多应用于需要解码程序的地方，如MP3.
+            - MP3是被压缩的文件格式，需要特定的解码库程序来解码文件才能得到可以播放的PCM信号。
+            - 解码需要一定时间，常规方法是读取一段原始数据到缓冲区，然后对缓冲区内容解码，后输出到音频播放电路
+            - 这对CPU运算速度要求高，很容易出现播放不流畅现象，使用双缓冲模式就可以达到解码和输出音频数据同步进行的效果
+    DMA中断：每个DMA数据流可以在发生以下事件时产生中断
+        - 达到半传输：HTIF,需使能HTIE中断控制位
+        - 传输完成：TCIF,需使能TCIE
+        - 传输错误：TEIF,需使能TEIE；DMA访问总线或双缓冲模式下访问受限存储器
+        - FIFO错误：FEIF，需使能FEIE；上溢下溢
+        - 直接模式错误：DMEIF,需使能DMEIE；外设到存储器的直接模式下，因为存储器总线没得到授权，使得先前数据没有完成被传输到存储器空间上
+    
+    存储器到USART1
+        编程要点
+        - 配置USART通信功能
+        - 设置DMA为存储器带外设模式，设置数据流通道，指定USART数据寄存器为目标地址，循环发送模式
+        - 使能DMA数据流
+        - 使能USART的DMA发送请求USART_DMACmd
+        - DMA传输同时CPU可以运行其他任务
+        - DMA传输每次需要(m3)
+            - DMA_Cmd(DMA1_Channel4, DISABLE);
+            - DMA1_Channel4->CNDTR = sMsgTx->uwTxMaxCnt;
+            - DMA_Cmd(DMA1_Channel4, ENABLE);
+            - USART_DMACmd(USART1, USART_DMAReq_Tx, ENABLE);
+            m4
+            - DMA_Cmd(DMA2_Stream7,DISABLE);
+    使用1.25.0版HAL库：
+        - 默认设置开启DMA所有中断，用起来太费劲了，屏蔽DMA中断。发送完成后:
+            HAL_UART_DMAStop(&huart1);
+            if(HAL_UART_Transmit_DMA(&huart1,(uint8_t *)str,strlen(str))!=HAL_OK)
+            {
+                Error_Handler();
+            }
+        - 设定UART_MSG结构体，需要发送时使用SetUartTxData设定数据，在执行UartTxProcessing时具体发送。
+        - 在时间中断里调用Uart_Rx_Complete_Detecter，超出设定时间则判断为一帧数据结束；在循环中执行UartRxProcessing时具体解析。
+        - 有一个问题，在重启发送的时候关闭DMA传输使用的是__HAL_DMA_DISABLE，而接收使用的是HAL_UART_DMAStop，不能混用。
+存储器
+    - RAM
+        - DRAM Dynamic，DRAM的存储单元以电容的电荷来表示数据，有电荷表示1，无电荷表示0.但时间一长代表1的电容会放电代表0的电容会吸收电荷，因此需要定期刷新操作，也就是所谓的动态的意思。
+            - SDRAM synchronous根据通讯方式分为同步和异步,根据通讯时是否需要同步时钟信号来区分,上升沿表示有效数据，由于同步通讯速度更快，所以SDRAM使用更广泛。
+            - DDR SDRAM Double Data Rate 存储特性和SDRAM一样，但是在上升沿和下降沿各表示一个数据，在1个时钟周期内可以表示2个数据，所以在相同的时钟频率下提高了一倍的通讯速度。
+            - DDR2 DDR3 和DDR没有区别，只是提高了同步时钟频率
+        - SRAM 以锁存器存储数据，不需要定时刷新，所以称为static。
+        - DRAM的结构相比SRAM要简单很多，所以成本更低，集成度更高；但是DRAM的定容结构决定了它的存储速度不如SRAM。
+        - 所以SRAM一般用于CPU内部高速缓存Cache，而外部扩展的内存使用DRAM。
+    - ROM 非易失性存储器
+        - MASK ROM 掩膜，内部数据在生产时固化，不可修改，优势是大批量成本低。
+        - OTP ROM One Time Programable，NXP的芯片内常用来存储密钥
+        - EPROM Erasable Programmable ROM，可重复擦写，但是需要紫外线照射芯片内部擦除数据，已被淘汰。
+        - EEPROM Electrically EPROM,电可擦除存储器，擦除和写入都是直接使用电路控制，不需要外部设备。而且可以按字节为单位修改数据，无需整个芯片擦除。
+        - FLASH 闪存        同容量成本  集成度  介质类型    地址线和数据线  擦除单元    读写单元    读取速度    写入速度    坏块    是否支持XIP
+            - NOR FLASH     较贵        较低    随机存储    独立分开        扇区/块     字节        较快        较慢      较少      支持
+            - NAND FLASH    较便宜      较高    连续存储    共用            扇区/块     块          较慢        较快      较多      不支持
+            - 写入前都需要擦除，NOR和NAND的特性差别是由地址/数据线是否分开导致的，NOR分开可以按字节读写数据，存储代码指令，CPU给NOR一个地址，NOR就能向CPU返回一个数据让CPU执行，中间不需要额外的处理操作。
+              所以代码存储在NAND上，需要先加载到RAM中，，再由CPU执行。NAND坏块多，而且坏一个一整个块不能用，NOR坏块少寿命长，由于坏块的存在FLASH都要探测/错误更正(EDC/ECC)算法来确保数据的正确性。
+            - NOR FLASH用于代码存储，NAND FLASH用于大数据存储，包括SD卡，U盘，固态硬件。    
+I2C：主要用于IC间通信
+    物理层：
+    - 多个主机多个从机
+    - SDA,SCL两条总线
+    - 每个设备都有一个独立的地址，主机利用不同地址进行不同设备间通信
+    - 总线都带2-15V上拉电阻，设备空闲时输出高阻态
+    - 多个主机使用总线时，通过仲裁决定
+    - 三种传输模式：标准模式100kb/s,快速模式400kb/s,高速模式1Mb/s
+    - 连接到总线IC数量受最大电容400pF限制
+    协议层
+    - 主机起始信号，SCL下降沿
+    - 从机地址
+    - 传输方向 R/W 1/0
+    - 从机应答ACK
+    - 8bit数据，主/从ACK，可重复；（ACK低电平，NACK高电平）
+    - 写入结束：主机发送停止传输信号P；读取结束：主机发送NACK；SCL上升沿
+    - 常用复合模式，先写入一段数据告诉从机读写地址，然后再读写这个地址内容
+    STM32中I2C外设，SMBus是用于laptop电池管理的；模拟和数字噪声滤波器，可以在I2C_CR1寄存器内配置使用，注意要在I2C禁止时配置。
+    实验中EEPROM芯片AT24C02
+        - 设备地址7位高4位固定为1010b，低3位由A0/A1/A2信号线的电平决定，开发板默认000.
+        - 使用时地址结合R/W位，合为一个byte使用，即默认0xA0
+        - 芯片有WP脚，电平为高时禁止写入
+        - 单字节时序规定，写入数据时，第一个字节为内存地址，第二个字节是要写入的数据内容
+        - 页写入时序，第一个内存地址，后面的按次序写入，该芯片一次最多8个字节即页大小8byte
+        - eeprom的页写入只是为了加速传输，并不是只能按照页读写
+        - 读数据：先发送设备地址寻址（写方向），接着发送要读取的内存地址；在此使用I2C发送设备地址寻址，但变为读方向，EEPROM向主机返回从内存地址开始的数据，只要主机响应ACK，就会一直传输下去，主机想结束时发送NACK即可。
