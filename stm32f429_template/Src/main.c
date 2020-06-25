@@ -21,6 +21,7 @@
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 #include "i2c.h"
+#include "spi.h"
 #include "usart.h"
 #include "gpio.h"
 
@@ -93,8 +94,10 @@ int main(void)
   MX_GPIO_Init();
   MX_USART1_UART_Init();
   MX_I2C1_Init();
+  MX_SPI5_Init();
   /* USER CODE BEGIN 2 */
   DEBUG("test DEBUG");
+  #if 0 
   // memset(EE_WriteBuffer,0,EEPROM_MEMORY_SIZE);
   memset(EE_ReadBuffer,0,EEPROM_MEMORY_SIZE);
   for(cnt=0;cnt<256;cnt++)
@@ -102,8 +105,6 @@ int main(void)
     EE_WriteBuffer[cnt] = cnt;
   }
   strcpy((char *)EE_WriteBuffer,str);
-  // if(I2C_EE_WriteByte(&EE_WriteBuffer[5],0x3)==HAL_OK)
-  // if(I2C_EE_WritePage(EE_WriteBuffer,0x0,8)==HAL_OK)
   if(I2C_EE_WriteBuffer(EE_WriteBuffer,45,strlen(str))==HAL_OK)
   // if(I2C_EE_WriteBuffer(EE_WriteBuffer,0,EEPROM_MEMORY_SIZE)==HAL_OK)
   {
@@ -126,7 +127,7 @@ int main(void)
   {
     DEBUG("write:%d  read:%c",EE_WriteBuffer[i] ,EE_ReadBuffer[i]);
   }
-  
+  #endif
   /* USER CODE END 2 */
 
   /* Infinite loop */

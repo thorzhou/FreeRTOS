@@ -1,4 +1,4 @@
-stm32f4xx_hal_def.h
+﻿stm32f4xx_hal_def.h
 
 GPIO Init structure definition:         GPIO_InitTypeDef    
 GPIO_PinState:                          GPIO_PIN_RESET=0, GPIO_PIN_SET
@@ -42,5 +42,3 @@ cubeMX config:
     - GPIO pullup/pulldown: none/pull up/pull down 上拉下拉
     - Maximum output speed: low~very high 输出速度
     - User label:           用户定义标签，在main.h中
-
-SystemCoreClock不影响systick时钟
